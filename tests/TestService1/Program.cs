@@ -74,6 +74,11 @@ namespace TestService1
             return $"Service1 Received from: {req.From}";
         }
 
+        public void Any(ExcludedService1 req)
+        {
+            "ExcludeService1 called.".Print();
+        }
+
     }
 
     public class Service1CallsService2 : IReturn<string>
@@ -85,4 +90,8 @@ namespace TestService1
     {
         public string From { get; set; }
     }
+
+    [ExcludeServiceDiscovery()]
+    public class ExcludedService1 : IReturnVoid
+    { }
 }

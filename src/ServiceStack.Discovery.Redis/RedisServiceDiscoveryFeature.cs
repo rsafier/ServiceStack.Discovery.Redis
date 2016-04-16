@@ -46,6 +46,13 @@ namespace ServiceStack.Discovery.Redis
 
     }
 
+    /// <summary>
+    /// Will prevent service from being published for discovery.
+    /// </summary>
+    public class ExcludeServiceDiscoveryAttribute : Attribute
+    {
+    }
+
     [Route("/RedisServiceDiscovery/GetServiceRequestTypes")]
     [Exclude(Feature.Metadata)]
     [Restrict(VisibilityTo = RequestAttributes.None)]
@@ -102,6 +109,7 @@ namespace ServiceStack.Discovery.Redis
                     .Where(x => !nativeTypes.MetadataTypesConfig.IgnoreTypes.Contains(x))
                     .Where(x => !nativeTypes.MetadataTypesConfig.IgnoreTypesInNamespaces.Contains(x.Namespace))
                     .Where(x => x.AllAttributes<RestrictAttribute>().All(a => a.VisibilityTo.HasFlag(RequestAttributes.External)))
+                    .Where(x => !x.HasAttribute< ExcludeServiceDiscoveryAttribute>())
                     .Select(z => z.FullName).ToList();
                 return typeNames;
             }
