@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>ServiceStack.Discovery.Redis</id>
+    <version>$version$</version>
+    <authors>Richard J. Safier (@rsafier)</authors>
+    <description>ServiceStack plugin that supports service discovery and request uri resolution using Redis</description>
+    <projectUrl>https://github.com/rsafier/ServiceStack.Discovery.Redis</projectUrl>
+    <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
+    <iconUrl>https://servicestack.net/img/logo-32.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <tags>servicestack plugin discovery servicediscovery microservices redis</tags>
+    <releaseNotes>See github project for details</releaseNotes>
+    <dependencies>
+      <dependency id="ServiceStack" version="[4.0.55, 5)" />
+      <dependency id="ServiceStack.Common" version="[4.0.55, 5)" />
+      <dependency id="ServiceStack.Text" version="[4.0.55, 5)" />
+      <dependency id="ServiceStack.Redis" version="[4.0.55, 5)" />
+      <dependency id="ServiceStack.Client" version="[4.0.55, 5)" />
+      <dependency id="ServiceStack.Interfaces" version="[4.0.55, 5)" />
+    </dependencies>
+  </metadata>
+</package>
