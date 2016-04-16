@@ -11,6 +11,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{F816C505-5
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{F75D964A-E109-493D-99AC-6469A76040FB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestService1", "tests\TestService1\TestService1.csproj", "{F614F916-6946-4A89-B355-41BD8803F025}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestService2", "tests\TestService2\TestService2.csproj", "{B968AD53-F545-4771-8A9F-3FF8E35B7D95}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{981036CF-6A82-4716-8B12-D91B558EA253}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,8 +29,21 @@ Global
 		{1A14AC71-BE64-4910-9FD2-2E59ADE36319}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1A14AC71-BE64-4910-9FD2-2E59ADE36319}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1A14AC71-BE64-4910-9FD2-2E59ADE36319}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F614F916-6946-4A89-B355-41BD8803F025}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F614F916-6946-4A89-B355-41BD8803F025}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F614F916-6946-4A89-B355-41BD8803F025}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F614F916-6946-4A89-B355-41BD8803F025}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B968AD53-F545-4771-8A9F-3FF8E35B7D95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B968AD53-F545-4771-8A9F-3FF8E35B7D95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B968AD53-F545-4771-8A9F-3FF8E35B7D95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B968AD53-F545-4771-8A9F-3FF8E35B7D95}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1A14AC71-BE64-4910-9FD2-2E59ADE36319} = {981036CF-6A82-4716-8B12-D91B558EA253}
+		{F614F916-6946-4A89-B355-41BD8803F025} = {F75D964A-E109-493D-99AC-6469A76040FB}
+		{B968AD53-F545-4771-8A9F-3FF8E35B7D95} = {F75D964A-E109-493D-99AC-6469A76040FB}
 	EndGlobalSection
 EndGlobal
