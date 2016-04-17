@@ -30,7 +30,10 @@ namespace TestService2
             {
                 WebHostUrl = HostAt.Replace("*", Environment.MachineName)
             });
-            LoadPlugin(new RedisServiceDiscoveryFeature());
+            LoadPlugin(new RedisServiceDiscoveryFeature()
+            {
+                SetServiceGateway = (baseUrl) => new JsonServiceClient(baseUrl) { UserAgent = "Custom User Agent" } 
+            });
         }
     }
 

@@ -115,6 +115,10 @@ namespace ServiceStack.Discovery.Redis
             }
         }
 
+        /// <summary>
+        /// If remote gateway is required baseUrl is resolved and provided so a custom gateway can be constructed.
+        /// </summary>
+        public Func<string, IServiceGateway> SetServiceGateway;
         public string RedisNodeKey { get; private set; }
 
         /// <summary>
@@ -364,10 +368,11 @@ namespace ServiceStack.Discovery.Redis
         {
             if (HostContext.Metadata.RequestTypes.Contains(requestType))
                 return localGateway;
-            var baseUrl = HostContext.GetPlugin<RedisServiceDiscoveryFeature>().ResolveBaseUrl(requestType);
+            var feature = HostContext.GetPlugin<RedisServiceDiscoveryFeature>();
+            var baseUrl = feature.ResolveBaseUrl(requestType);
             if (baseUrl.IsEmpty())
                 throw new RedisServiceDiscoveryGatewayException("Cannot resolve request type to local or remote service endpoint.");
-            return (IServiceGateway)new JsonServiceClient(baseUrl);
+            return feature.SetServiceGateway != null ? feature.SetServiceGateway(baseUrl) : (IServiceGateway)new JsonServiceClient(baseUrl);
         }
     }
 

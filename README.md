@@ -45,6 +45,10 @@ public class MyService : Service
     }
 }
 ```
+If you need to customize your remote service client before the request is made `SetServiceGateway` will pass you the resolved `baseUrl` (or throw `RedisServiceDiscoveryGatewayException` if no baseUrl can be resolved)
+```c#
+Plugins.Add(new RedisServiceDiscoveryFeature(){ SetServiceGateway = (baseUrl) => new JsonServiceClient(baseUrl) { UserAgent = "Custom User Agent" }});
+```
 
 ### Requirements / Notes
 - Using ServiceStack version 4.0.55 or greater
@@ -73,3 +77,4 @@ On each timer event, the exposed request types are updated, as well as local nod
 
 If the `RedisDiscoveryRoles.CanHostMaster` role is set (default, unless removed from `Config.Roles` list) it will check is a HostName key already exists. If it does, it will attempt to set a key for the HostName, effectively acting as a lock. If the key is obtained then that `NodeId` will gain the `RedisDiscoveryRoles.HostMaster`. If the Node is `RedisDiscoveryRoles.HostMaster` then it will update it's `RedisHostMasterInfo` record and call custom `OnHostRefreshActions`
 
+#####Also see [ServiceStack.SimpleCloudControl](https://github.com/rsafier/ServiceStack.SimpleCloudControl) for additional plugins which can utilize the information `ServiceStack.Discovery.Redis` publishes to Redis for additional value (MQ Control, etc).
