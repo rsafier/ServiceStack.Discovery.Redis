@@ -3,6 +3,7 @@ using ServiceStack;
 using ServiceStack.Discovery.Redis;
 using ServiceStack.Messaging.Redis;
 using ServiceStack.Redis;
+using ServiceStack.SimpleCloudControl;
 using ServiceStack.Text;
 using System;
 using System.Collections.Generic;
@@ -28,9 +29,10 @@ namespace TestService1
             container.Register<IRedisClientsManager>(new RedisManagerPool("localhost:6379", new RedisPoolConfig { MaxPoolSize = 100, }));
             SetConfig(new HostConfig
             {
-                WebHostUrl = HostAt.Replace("*", Environment.MachineName)
+                WebHostUrl = HostAt.Replace("*", Environment.MachineName),
             });
-            LoadPlugin(new RedisServiceDiscoveryFeature());
+            LoadPlugin(new RedisServiceDiscoveryFeature() {ExcludedTypes = new HashSet<Type> {typeof(ExcludedServiceByHashset) } });
+            LoadPlugin(new SimpleCloudControlFeature());
         }
     }
 
@@ -79,6 +81,11 @@ namespace TestService1
             "ExcludeService1 called.".Print();
         }
 
+        public void Any(ExcludedServiceByHashset req)
+        {
+            "ExcludedServiceByHashset called.".Print();
+        }
+
     }
 
     public class Service1CallsService2 : IReturn<string>
@@ -93,5 +100,8 @@ namespace TestService1
 
     [ExcludeServiceDiscovery()]
     public class ExcludedService1 : IReturnVoid
+    { }
+
+    public class ExcludedServiceByHashset : IReturnVoid
     { }
 }

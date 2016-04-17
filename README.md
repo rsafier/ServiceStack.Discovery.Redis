@@ -56,7 +56,7 @@ Plugins.Add(new RedisServiceDiscoveryFeature(){ SetServiceGateway = (baseUrl) =>
 - Set `HostConfig.WebHostUrl` to a connectable BaseUrl that will be used 
 - ServiceStack license is recommened. [Free Quota](https://servicestack.net/download#free-quotas) limitation of 6000 Redis requests/hr could easily be exceeded, depending on the Node refresh period and number of exposed DTOs.
 - DTOs are registered with their full type name (e.g. ServiceStack.Discovery.Redis.GetServiceRequestTypes). If you are importing your types via `Add Service Reference` and overriding your namespace you will run into issues.
-- Services can be excluded from automatic registration by adding an `[ExcludeServiceDiscovery()]` attribute to the DTO
+- Services can be excluded from automatic registration by adding an `[ExcludeServiceDiscovery()]` attribute to the DTO, or setting exclusions via `public HashSet<Type> ExcludedTypes` (currently only resolved at start-up, might explore runtime adjustable)
 - `ResolveBaseUrl` is using a very simple policy of taking the `First()` Node matching the requested type. Additional criteria could be used by looking up NodeId details. (e.g. sort by lowest average load,uptime, etc.)
 
 

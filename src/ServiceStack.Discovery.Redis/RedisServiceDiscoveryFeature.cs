@@ -109,12 +109,17 @@ namespace ServiceStack.Discovery.Redis
                     .Where(x => !nativeTypes.MetadataTypesConfig.IgnoreTypes.Contains(x))
                     .Where(x => !nativeTypes.MetadataTypesConfig.IgnoreTypesInNamespaces.Contains(x.Namespace))
                     .Where(x => x.AllAttributes<RestrictAttribute>().All(a => a.VisibilityTo.HasFlag(RequestAttributes.External)))
-                    .Where(x => !x.HasAttribute< ExcludeServiceDiscoveryAttribute>())
+                    .Where(x => !x.HasAttribute<ExcludeServiceDiscoveryAttribute>())
+                    .Where(x => !ExcludedTypes.Contains(x))
                     .Select(z => z.FullName).ToList();
                 return typeNames;
             }
         }
-
+        
+        /// <summary>
+        /// Types that will be excluded from service discovery
+        /// </summary>
+        public HashSet<Type> ExcludedTypes { get; set; } = new HashSet<Type>();
         /// <summary>
         /// If remote gateway is required baseUrl is resolved and provided so a custom gateway can be constructed.
         /// </summary>

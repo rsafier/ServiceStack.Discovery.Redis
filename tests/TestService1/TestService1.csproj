@@ -61,6 +61,10 @@
       <HintPath>..\..\packages\ServiceStack.Server.4.0.55\lib\net45\ServiceStack.Server.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="ServiceStack.SimpleCloudControl, Version=0.0.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\ServiceStack.SimpleCloudControl.0.0.0.1\lib\net452\ServiceStack.SimpleCloudControl.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="ServiceStack.Text, Version=4.0.55.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\ServiceStack.Text.4.0.55\lib\net40\ServiceStack.Text.dll</HintPath>
       <Private>True</Private>
