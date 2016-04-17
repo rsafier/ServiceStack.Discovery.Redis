@@ -64,7 +64,7 @@ public class MyService : Service
 - The default `RedisPrefix = "rsd"`.
 - Keys will all have TTL set to `NodeTimeoutPeriod`
 
-![Screen shot of test apps](images/SampleScreenshot.png)]
+![Screen shot of test apps](images/SampleScreenshot.png)
 
 ####Process details
 On ServiceStack completing initialization `ServiceStack.Discovery.Redis` will start a periodic timer to refresh the node state every `NodeRefreshPeriod`. Each instance of AppHost will have a new `Guid` generated on startup as `NodeId` to ensure complete uniqueness. 
