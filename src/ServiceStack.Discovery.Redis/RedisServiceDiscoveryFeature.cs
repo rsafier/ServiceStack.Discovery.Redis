@@ -366,8 +366,15 @@ namespace ServiceStack.Discovery.Redis
                 return localGateway;
             var baseUrl = HostContext.GetPlugin<RedisServiceDiscoveryFeature>().ResolveBaseUrl(requestType);
             if (baseUrl.IsEmpty())
-                throw new Exception("Cannot resolve request type to local or remote service endpoint.");
+                throw new RedisServiceDiscoveryGatewayException("Cannot resolve request type to local or remote service endpoint.");
             return (IServiceGateway)new JsonServiceClient(baseUrl);
+        }
+    }
+
+    public class RedisServiceDiscoveryGatewayException : Exception
+    {
+        public RedisServiceDiscoveryGatewayException(string message) : base(message)
+        {
         }
     }
 }
