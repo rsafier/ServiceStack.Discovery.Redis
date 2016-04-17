@@ -1,5 +1,5 @@
 ## ServiceStack.Discovery.Redis
-[![Build status](https://ci.appveyor.com/api/projects/status/55830emag9ksyasf/branch/master?svg=true)](https://ci.appveyor.com/project/rsafier/ServiceStack.Discovery.Redis)
+[![Build status](https://ci.appveyor.com/api/projects/status/github/rsafier/ServiceStack.Discovery.Redis?branch=master&svg=true)](https://ci.appveyor.com/project/rsafier/ServiceStack.Discovery.Redis)
 [![NuGet version](https://badge.fury.io/nu/ServiceStack.Discovery.Redis.svg)](https://badge.fury.io/nu/ServiceStack.Discovery.Redis)
 
 A plugin for [ServiceStack](https://servicestack.net/) that provides transparent service discovery using via a simple [Redis](http://redis.io)-backed datastore.
