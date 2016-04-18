@@ -1,5 +1,6 @@
 ﻿using Funq;
 using ServiceStack;
+using ServiceStack.DataAnnotations;
 using ServiceStack.Discovery.Redis;
 using ServiceStack.Messaging.Redis;
 using ServiceStack.Redis;
@@ -95,7 +96,7 @@ namespace TestService2
         public string From { get; set; }
     }
 
-    [ExcludeServiceDiscovery()]
+    [Exclude(Feature.ServiceDiscovery)]
     public class ExcludedService2 : IReturnVoid
     { }
 }

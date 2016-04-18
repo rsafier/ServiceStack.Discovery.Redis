@@ -1,9 +1,9 @@
 ﻿using Funq;
 using ServiceStack;
+using ServiceStack.DataAnnotations;
 using ServiceStack.Discovery.Redis;
 using ServiceStack.Messaging.Redis;
 using ServiceStack.Redis;
-using ServiceStack.SimpleCloudControl;
 using ServiceStack.Text;
 using System;
 using System.Collections.Generic;
@@ -31,8 +31,9 @@ namespace TestService1
             {
                 WebHostUrl = HostAt.Replace("*", Environment.MachineName),
             });
+            typeof(ExcludeServiceDynamic).AddAttributes(new ExcludeAttribute(Feature.ServiceDiscovery));
             LoadPlugin(new RedisServiceDiscoveryFeature() {ExcludedTypes = new HashSet<Type> {typeof(ExcludedServiceByHashset) } });
-            LoadPlugin(new SimpleCloudControlFeature());
+            
         }
     }
 
@@ -76,7 +77,7 @@ namespace TestService1
             return $"Service1 Received from: {req.From}";
         }
 
-        public void Any(ExcludedService1 req)
+        public void Any(ExcludeServiceDynamic req)
         {
             "ExcludeService1 called.".Print();
         }
@@ -84,6 +85,11 @@ namespace TestService1
         public void Any(ExcludedServiceByHashset req)
         {
             "ExcludedServiceByHashset called.".Print();
+        }
+
+        public void Any(ExcludeByExcludeServiceDiscoveryAttr req)
+        {
+            "ExcludeByExcludeServiceDiscoveryAttr called".Print();
         }
 
     }
@@ -98,10 +104,14 @@ namespace TestService1
         public string From { get; set; }
     }
 
-    [ExcludeServiceDiscovery()]
-    public class ExcludedService1 : IReturnVoid
+    [Exclude(Feature.Jsv)]
+    public class ExcludeServiceDynamic : IReturnVoid
     { }
 
     public class ExcludedServiceByHashset : IReturnVoid
+    { }
+
+    [Exclude(Feature.ServiceDiscovery)]
+    public class ExcludeByExcludeServiceDiscoveryAttr : IReturnVoid
     { }
 }
