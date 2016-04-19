@@ -1,4 +1,5 @@
-﻿using Funq;
+﻿using common;
+using Funq;
 using ServiceStack;
 using ServiceStack.DataAnnotations;
 using ServiceStack.Discovery.Redis;
@@ -31,10 +32,7 @@ namespace TestService2
             {
                 WebHostUrl = HostAt.Replace("*", Environment.MachineName)
             });
-            LoadPlugin(new RedisServiceDiscoveryFeature()
-            {
-                SetServiceGateway = (baseUrl) => new JsonServiceClient(baseUrl) { UserAgent = "Custom User Agent" } 
-            });
+            LoadPlugin(new RedisServiceDiscoveryFeature());
         }
     }
 
@@ -51,6 +49,7 @@ namespace TestService2
             {
                 Task.Delay(1000).Wait();
                 HostContext.AppHost.ExecuteService(new Service2CallsService1() { From = "Service2" }).PrintDump();
+                HostContext.AppHost.ExecuteService(new Echo() { Input = "His fleece was white as snow" }).PrintDump();
             }
         }
     }
@@ -78,25 +77,31 @@ namespace TestService2
             return $"Service2 Received from: {req.From}";
         }
 
-        public void Any(ExcludedService2 req)
-        {
-            "ExcludeService2 called".Print();
-        }
+       
+
+          public string Any(Echo req) => $"{HostContext.ServiceName} is echoing {req.Input}";
+
 
     }
+     
 
     public class Service2CallsService1 : IReturn<string>
     {
         public string From { get; set; }
     }
-     
+
 
     public class Service2External : IReturn<string>
     {
         public string From { get; set; }
     }
 
-    [Exclude(Feature.ServiceDiscovery)]
-    public class ExcludedService2 : IReturnVoid
-    { }
+}
+
+namespace common
+{
+    public class Echo : IReturn<string>
+    {
+        public string Input { get; set; }
+    }
 }

@@ -1,4 +1,5 @@
-﻿using Funq;
+﻿using common;
+using Funq;
 using ServiceStack;
 using ServiceStack.DataAnnotations;
 using ServiceStack.Discovery.Redis;
@@ -31,9 +32,13 @@ namespace TestService1
             {
                 WebHostUrl = HostAt.Replace("*", Environment.MachineName),
             });
-            typeof(ExcludeServiceDynamic).AddAttributes(new ExcludeAttribute(Feature.ServiceDiscovery));
-            LoadPlugin(new RedisServiceDiscoveryFeature() {ExcludedTypes = new HashSet<Type> {typeof(ExcludedServiceByHashset) } });
-            
+            LoadPlugin(new RedisServiceDiscoveryFeature()
+            {
+                ExcludedTypes = new HashSet<Type> { typeof(ExcludedServiceByHashset) },
+                SetServiceGateway = (baseUrl, requestType) => new JsonServiceClient(baseUrl) { UserAgent = "Custom User Agent" },
+                NeverRunViaLocalGateway = new HashSet<Type> { typeof(Echo) }
+            });
+
         }
     }
 
@@ -45,11 +50,13 @@ namespace TestService1
                 return;
             var app = new AppHost(args[0]).Init().Start(args[0]);
             $"Listening on {args[0]}".PrintDump();
-            
-            while(true)
+
+            while (true)
             {
                 Task.Delay(1000).Wait();
                 HostContext.AppHost.ExecuteService(new Service1CallsService2() { From = "Service1" }).PrintDump();
+
+                HostContext.AppHost.ExecuteService(new CallEcho() { Input = "Mary had a little lamb" }).PrintDump();
             }
         }
     }
@@ -77,41 +84,43 @@ namespace TestService1
             return $"Service1 Received from: {req.From}";
         }
 
-        public void Any(ExcludeServiceDynamic req)
-        {
-            "ExcludeService1 called.".Print();
-        }
-
         public void Any(ExcludedServiceByHashset req)
         {
             "ExcludedServiceByHashset called.".Print();
         }
 
-        public void Any(ExcludeByExcludeServiceDiscoveryAttr req)
-        {
-            "ExcludeByExcludeServiceDiscoveryAttr called".Print();
-        }
+        public string Any(Echo req) => $"{HostContext.ServiceName} is echoing {req.Input}";
+        public string Any(CallEcho req) => Gateway.Send(req.ConvertTo<Echo>()); //This should not call the local
+        
+}
 
-    }
 
     public class Service1CallsService2 : IReturn<string>
     {
         public string From { get; set; }
     }
-     
+
     public class Service1External : IReturn<string>
     {
         public string From { get; set; }
     }
 
-    [Exclude(Feature.Jsv)]
-    public class ExcludeServiceDynamic : IReturnVoid
-    { }
-
     public class ExcludedServiceByHashset : IReturnVoid
-    { }
+    { }  
 
+    [Restrict(AccessTo = RequestAttributes.InProcess)]
+    public class CallEcho
+    {
+        public string Input { get; set; }
+    }
+
+}
+
+namespace common
+{
     [Exclude(Feature.ServiceDiscovery)]
-    public class ExcludeByExcludeServiceDiscoveryAttr : IReturnVoid
-    { }
+    public class Echo : IReturn<string>
+    {
+        public string Input { get; set; }
+    }
 }

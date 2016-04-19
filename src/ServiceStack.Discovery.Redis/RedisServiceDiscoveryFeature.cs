@@ -10,6 +10,7 @@ using ServiceStack.DataAnnotations;
 using ServiceStack.Web;
 using ServiceStack.Redis.Pipeline;
 using System.Net;
+using ServiceStack.Discovery.Redis;
 
 namespace ServiceStack.Discovery.Redis
 {
@@ -31,7 +32,7 @@ namespace ServiceStack.Discovery.Redis
         public Dictionary<string, string> Meta { get; set; } = new Dictionary<string, string>();
         public DateTime LastUpdateOn { get; set; }
     }
-
+    
     public class RedisHostMasterInfo : IMeta
     {
         /// <summary>
@@ -89,26 +90,23 @@ namespace ServiceStack.Discovery.Redis
     {
         private readonly ILog Log = LogManager.GetLogger(typeof(RedisServiceDiscoveryFeature));
         private Timer BackgroundLoopTimer;
-        private List<string> typeNames;
-        private List<string> TypeNames
+        private HashSet<string> typeNames;
+        private HashSet<string> TypeNames
         {
             get
             {
                 if (typeNames != null) return typeNames;
-
+                //cache it
                 var nativeTypes = HostContext.AppHost.GetPlugin<NativeTypesFeature>();
-                typeNames = HostContext.AppHost.Metadata.RequestTypes
-                    .Where(x => x.AllAttributes<ExcludeAttribute>().All(a => a.Feature != Feature.Metadata))
-                    .Where(x=> x.AllAttributes<ExcludeAttribute>().All(a=>a.Feature != Feature.ServiceDiscovery))
-                    .Where(x => !nativeTypes.MetadataTypesConfig.IgnoreTypes.Contains(x))
-                    .Where(x => !nativeTypes.MetadataTypesConfig.IgnoreTypesInNamespaces.Contains(x.Namespace))
-                    .Where(x => x.AllAttributes<RestrictAttribute>().All(a => a.VisibilityTo.HasFlag(RequestAttributes.External)))
-                    .Where(x => !ExcludedTypes.Contains(x))
-                    .Select(z => z.FullName).ToList();
+                var types = HostContext.AppHost.Metadata.RequestTypes
+                    .WithServiceDiscoveryAllowed()
+                    .WithoutNativeTypes(nativeTypes)
+                    .Where(x => !ExcludedTypes.Contains(x));
+                typeNames = (FilterTypes != null ? FilterTypes(types) : types).Select(z => z.FullName).ToHashSet();
                 return typeNames;
             }
         }
-        
+        public Func<IEnumerable<Type>, IEnumerable<Type>> FilterTypes;
         /// <summary>
         /// Types that will be excluded from service discovery
         /// </summary>
@@ -116,7 +114,11 @@ namespace ServiceStack.Discovery.Redis
         /// <summary>
         /// If remote gateway is required baseUrl is resolved and provided so a custom gateway can be constructed.
         /// </summary>
-        public Func<string, IServiceGateway> SetServiceGateway;
+        public Func<string,Type, IServiceGateway> SetServiceGateway;
+        /// <summary>
+        /// Types in this list will be forced to resolve to a host, regardless if the type is being locally served.
+        /// </summary>
+        public HashSet<Type> NeverRunViaLocalGateway = new HashSet<Type>();
         public string RedisNodeKey { get; private set; }
 
         /// <summary>
@@ -215,8 +217,8 @@ namespace ServiceStack.Discovery.Redis
             Config.WebHostUrl = appHost.Config.WebHostUrl;
             HostMasterInfo.WebHostUrl = Config.WebHostUrl;
             HostMasterInfo.NodeId = Config.NodeId;
-
             appHost.GetContainer().Register<IServiceGatewayFactory>(c => new RedisServiceDiscoveryGateway()).ReusedWithin(Funq.ReuseScope.None);
+
         }
 
         private void StartBackgroundLoopTimer(IAppHost obj)
@@ -227,14 +229,6 @@ namespace ServiceStack.Discovery.Redis
         private void DisposeCallback(IAppHost obj)
         {
             Dispose();
-        }
-
-
-        public string GetHostURI(object dto)
-        {
-            if (dto == null)
-                throw new ArgumentNullException(nameof(dto));
-            return HostContext.AppHost.ExecuteService(new ResolveBaseUrl { TypeFullName = dto.GetType().FullName }) as string;
         }
 
         public string ResolveBaseUrl(Type dtoType)
@@ -364,13 +358,14 @@ namespace ServiceStack.Discovery.Redis
     {
         public override IServiceGateway GetGateway(Type requestType)
         {
-            if (HostContext.Metadata.RequestTypes.Contains(requestType))
-                return localGateway;
             var feature = HostContext.GetPlugin<RedisServiceDiscoveryFeature>();
+            
+            if (!feature.NeverRunViaLocalGateway.Contains(requestType) && HostContext.Metadata.RequestTypes.Contains(requestType))
+                return localGateway;
             var baseUrl = feature.ResolveBaseUrl(requestType);
             if (baseUrl.IsEmpty())
                 throw new RedisServiceDiscoveryGatewayException("Cannot resolve request type to local or remote service endpoint.");
-            return feature.SetServiceGateway != null ? feature.SetServiceGateway(baseUrl) : (IServiceGateway)new JsonServiceClient(baseUrl);
+            return feature.SetServiceGateway != null ? feature.SetServiceGateway(baseUrl, requestType) : (IServiceGateway)new JsonServiceClient(baseUrl);
         }
     }
 
