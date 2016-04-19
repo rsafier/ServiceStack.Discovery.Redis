@@ -45,10 +45,17 @@ catch(RedisServiceDiscoveryGatewayException e)
 }
 }
 ```
-If you need to customize your remote service client before the request is made `SetServiceGateway` will pass you the resolved `baseUrl` (or throw `RedisServiceDiscoveryGatewayException` if no baseUrl can be resolved)
+
+####Customizing ServiceClient that Gateway service resolves
+If needed, resolve the client more exactly then the default behavior of a standard JsonServiceClient (or throw `RedisServiceDiscoveryGatewayException` if no baseUrl can be resolved)
+
 ```c#
-Plugins.Add(new RedisServiceDiscoveryFeature(){ SetServiceGateway = (baseUrl) => new JsonServiceClient(baseUrl) { UserAgent = "Custom User Agent" }});
+Plugins.Add(new RedisServiceDiscoveryFeature(){ 
+    SetServiceGateway = (baseUrl, requestType) => 
+       new JsonServiceClient(baseUrl) { UserAgent = "Custom User Agent" }
+});
 ```
+
 #### Filtering Services from Discovery
 Services can be excluded from automatic registration via
 
@@ -61,36 +68,34 @@ Services can be excluded from automatic registration via
  public class RequestDTO : IReturn<string>
 ```
 
-#### Forcing calls to resolve remote (if for some reason you wan)
+#### Forcing calls to resolve remote
 - `public HashSet<Type> NeverRunViaLocalGateway`
 ### Requirements / Notes
 - Requires ServiceStack version 4.0.56 or higher
 - A common Redis instance that all nodes in your discovery cluster register in the IOC (`IRedisClientsManager`) prior to loading plugin
 - Set `HostConfig.WebHostUrl` to a connectable BaseUrl that will be used
-- ServiceStack license is recommened. [Free Quota](https://servicestack.net/download#free-quotas) limitation of 6000 Redis requests/hr could easily be exceeded, depending on the Node refresh period and number of exposed DTOs.
+- ServiceStack license is practically required. [Free Quota](https://servicestack.net/download#free-quotas) limitation of 6000 Redis requests/hr could easily be exceeded, depending on the Node refresh period and number of exposed DTOs.
 - DTOs are registered with their full type name (e.g. ServiceStack.Discovery.Redis.GetServiceRequestTypes). If you are importing your types via `Add Service Reference` and overriding your namespace you will run into issues.
 - `ResolveBaseUrl` is using a very simple policy of taking the `First()` Node matching the requested type. Additional criteria could be used by looking up NodeId details. (e.g. sort by lowest average load,uptime, etc.)
 - Sample services require a binding address as the first parameter (e.g. TestService1.exe http://*:7777/)
-
-###Other known limitations
-- Currently really only setup for a single service client type, and not intellegent enough to differentate between the need for HTTPS
+- Currently default behavior doesn't take into account if service requires HTTPS, JSV vs. XML, etc. `SetServiceGateway(baseUrl, requestType)` could be used to help support that functionality if needed.
 
 ### Redis Key Structure
 
-    - **{RedisPrefix}:hosts:lastseen** - Hashset  of HostName key UnixDateTime of last update value
-    - **{RedisPrefix}:host:{HostName}** - Key  containing `RedisHostMasterInfo`
-    - **{RedisPrefix}:node:{HostName}:{ServiceName}:{NodeId}** - Key containing `RedisDiscoveryNodeInfo`
-    - **{RedisPrefix}:req:{FullTypeName}:{NodeId}** - Key containing baseUrl for FullType @ NodeId
-    - The default `RedisPrefix = "rsd"`.
-    - Keys will all have TTL set to `NodeTimeoutPeriod`
+- **{RedisPrefix}:hosts:lastseen** - Hashset  of HostName key UnixDateTime of last update value
+- **{RedisPrefix}:host:{HostName}** - Key  containing `RedisHostMasterInfo`
+- **{RedisPrefix}:node:{HostName}:{ServiceName}:{NodeId}** - Key containing `RedisDiscoveryNodeInfo`
+- **{RedisPrefix}:req:{FullTypeName}:{NodeId}** - Key containing baseUrl for FullType @ NodeId
+- The default `RedisPrefix = "rsd"`.
+- Keys will all have TTL set to `NodeTimeoutPeriod`
 
-    ![Screen shot of test apps](images/SampleScreenshot.png)
+![Screen shot of test apps](images/SampleScreenshot.png)
 
-    ####Process details
-    On ServiceStack completing initialization `ServiceStack.Discovery.Redis` will start a periodic timer to refresh the node state every `NodeRefreshPeriod`. Each instance of AppHost will have a new `Guid` generated on startup as `NodeId` to ensure complete uniqueness.
+####Process details
+On ServiceStack completing initialization `ServiceStack.Discovery.Redis` will start a periodic timer to refresh the node state every `NodeRefreshPeriod`. Each instance of AppHost will have a new `Guid` generated on startup as `NodeId` to ensure complete uniqueness.
 
-    On each timer event, the exposed request types are updated, as well as local node `RedisDiscoveryNodeInfo`. Custom actions can be triggered on refresh by registering in `OnNodeRefreshActions`
+On each timer event, the exposed request types are updated, as well as local node `RedisDiscoveryNodeInfo`. Custom actions can be triggered on refresh by registering in `OnNodeRefreshActions`
 
-    If the `RedisDiscoveryRoles.CanHostMaster` role is set (default, unless removed from `Config.Roles` list) it will check is a HostName key already exists. If it does, it will attempt to set a key for the HostName, effectively acting as a lock. If the key is obtained then that `NodeId` will gain the `RedisDiscoveryRoles.HostMaster`. If the Node is `RedisDiscoveryRoles.HostMaster` then it will update it's `RedisHostMasterInfo` record and call custom `OnHostRefreshActions`
+If the `RedisDiscoveryRoles.CanHostMaster` role is set (default, unless removed from `Config.Roles` list) it will check is a HostName key already exists. If it does, it will attempt to set a key for the HostName, effectively acting as a lock. If the key is obtained then that `NodeId` will gain the `RedisDiscoveryRoles.HostMaster`. If the Node is `RedisDiscoveryRoles.HostMaster` then it will update it's `RedisHostMasterInfo` record and call custom `OnHostRefreshActions`
 
-    #####Also see [ServiceStack.SimpleCloudControl](https://github.com/rsafier/ServiceStack.SimpleCloudControl) for additional plugins which can utilize the information `ServiceStack.Discovery.Redis` publishes to Redis for additional value (MQ Control, etc).
+#####Also see [ServiceStack.SimpleCloudControl](https://github.com/rsafier/ServiceStack.SimpleCloudControl) for additional plugins which can utilize the information `ServiceStack.Discovery.Redis` publishes to Redis for additional value (MQ Control, etc).
