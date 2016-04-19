@@ -70,7 +70,9 @@ Services can be excluded from automatic registration via
 
 #### Forcing calls to resolve remote
 - `public HashSet<Type> NeverRunViaLocalGateway`
+
 ### Requirements / Notes
+
 - Requires ServiceStack version 4.0.56 or higher
 - A common Redis instance that all nodes in your discovery cluster register in the IOC (`IRedisClientsManager`) prior to loading plugin
 - Set `HostConfig.WebHostUrl` to a connectable BaseUrl that will be used
