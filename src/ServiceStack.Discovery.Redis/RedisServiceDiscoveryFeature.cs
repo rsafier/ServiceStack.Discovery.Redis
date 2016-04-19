@@ -180,7 +180,7 @@ namespace ServiceStack.Discovery.Redis
             {
                 if (value)
                     Config.Roles.AddIfNotExists(RedisDiscoveryRoles.HostMaster);
-                else
+                else if (Config.Roles.Contains(RedisDiscoveryRoles.HostMaster))
                     Config.Roles.Remove(RedisDiscoveryRoles.HostMaster);
             }
         }
@@ -365,7 +365,32 @@ namespace ServiceStack.Discovery.Redis
             var baseUrl = feature.ResolveBaseUrl(requestType);
             if (baseUrl.IsEmpty())
                 throw new RedisServiceDiscoveryGatewayException("Cannot resolve request type to local or remote service endpoint.");
-            return feature.SetServiceGateway != null ? feature.SetServiceGateway(baseUrl, requestType) : (IServiceGateway)new JsonServiceClient(baseUrl);
+            return feature.SetServiceGateway != null ? feature.SetServiceGateway(baseUrl, requestType) : ResolveBestFitClient(baseUrl, requestType);
+        }
+
+        public static IServiceGateway ResolveBestFitClient(string baseUrl, Type requestType)
+        {
+            var restricts = requestType.AllAttributes<RestrictAttribute>();
+            var inSecureAllowed = restricts.All(t => t.HasAccessTo(RequestAttributes.InSecure)) || restricts.All(t => !t.HasAccessTo(RequestAttributes.Secure));
+            if (!inSecureAllowed && baseUrl.StartsWith("http", StringComparison.InvariantCultureIgnoreCase))
+            {
+                baseUrl = baseUrl.Insert(4, "s"); //tack in the secure if required and not in base listening url
+            }
+            IServiceGateway gateway = null;
+            if (requestType.HasJsonClientSupport())
+            {
+                gateway = new JsonServiceClient(baseUrl);
+            }
+            else if (requestType.HasJsvClientSupport())
+            {
+                gateway = new JsvServiceClient(baseUrl);
+            }
+            else if (requestType.HasXmlClientSupport())
+            {
+                gateway = new XmlServiceClient(baseUrl);
+            }
+            return gateway ?? (IServiceGateway)new JsonServiceClient(baseUrl); //default will be Json if logic doesn't figure it out
+
         }
     }
 

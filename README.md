@@ -47,7 +47,7 @@ catch(RedisServiceDiscoveryGatewayException e)
 ```
 
 ####Customizing ServiceClient that Gateway service resolves
-If needed, resolve the client more exactly then the default behavior of a standard JsonServiceClient (or throw `RedisServiceDiscoveryGatewayException` if no baseUrl can be resolved)
+Note: will throw `RedisServiceDiscoveryGatewayException` if no baseUrl can be resolved. Default behavior will try to do basic resolution of the client type (JSON/JSV/XML) and if HTTPS is required.
 
 ```c#
 Plugins.Add(new RedisServiceDiscoveryFeature(){ 

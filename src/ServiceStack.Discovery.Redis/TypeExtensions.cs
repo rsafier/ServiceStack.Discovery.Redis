@@ -7,6 +7,7 @@ namespace ServiceStack.Discovery.Redis
     using System.Collections.Generic;
     using System.Linq;
     using ServiceStack.DataAnnotations;
+    using ServiceStack;
 
     public static class TypeExtensions
     {
@@ -19,8 +20,8 @@ namespace ServiceStack.Discovery.Redis
         public static IEnumerable<Type> WithServiceDiscoveryAllowed(this IEnumerable<Type> types)
         {
             return types
-                .Where(x => x.AllAttributes<ExcludeAttribute>().All(a => (a.Feature & Feature.Metadata) != Feature.Metadata))
-                .Where(x => x.AllAttributes<ExcludeAttribute>().All(a => (a.Feature & Feature.ServiceDiscovery) != Feature.ServiceDiscovery));
+                .Where(x => x.AllAttributes<ExcludeAttribute>().All(a => (!a.Feature.HasFlag(Feature.Metadata))))
+                .Where(x => x.AllAttributes<ExcludeAttribute>().All(a => (!a.Feature.HasFlag(Feature.ServiceDiscovery))));
         }
 
         /// <summary>
@@ -37,7 +38,13 @@ namespace ServiceStack.Discovery.Redis
                 : types
                     .Where(x => !nativeTypes.MetadataTypesConfig.IgnoreTypes.Contains(x))
                     .Where(x => !nativeTypes.MetadataTypesConfig.IgnoreTypesInNamespaces.Contains(x.Namespace));
-        }        
-
+        }
+         
+        public static bool HasXmlClientSupport(this Type type) => !type.AllAttributes<ExcludeAttribute>().Any(t => t.Feature.HasFlag(Feature.Xml)) &&
+                                                                  type.AllAttributes<RestrictAttribute>().All(t => t.HasAccessTo(RequestAttributes.Xml)); 
+        public static bool HasJsvClientSupport(this Type type) => !type.AllAttributes<ExcludeAttribute>().Any(t => t.Feature.HasFlag(Feature.Jsv)) &&
+                                                                  type.AllAttributes<RestrictAttribute>().All(t => t.HasAccessTo(RequestAttributes.Jsv));
+        public static bool HasJsonClientSupport(this Type type) => !type.AllAttributes<ExcludeAttribute>().Any(t => t.Feature.HasFlag(Feature.Json)) &&
+                                                                  type.AllAttributes<RestrictAttribute>().All(t => t.HasAccessTo(RequestAttributes.Json)); 
     }
 }

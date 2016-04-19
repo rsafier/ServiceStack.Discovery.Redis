@@ -39,6 +39,7 @@ namespace TestService1
         public virtual string From { get; set; }
     }
 
+    [Restrict(AccessTo = RequestAttributes.Jsv)]
     public partial class Service1External
         : IReturn<string>
     {

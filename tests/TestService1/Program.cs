@@ -35,7 +35,7 @@ namespace TestService1
             LoadPlugin(new RedisServiceDiscoveryFeature()
             {
                 ExcludedTypes = new HashSet<Type> { typeof(ExcludedServiceByHashset) },
-                SetServiceGateway = (baseUrl, requestType) => new JsonServiceClient(baseUrl) { UserAgent = "Custom User Agent" },
+                //SetServiceGateway = (baseUrl, requestType) => new JsonServiceClient(baseUrl) { UserAgent = "Custom User Agent" },
                 NeverRunViaLocalGateway = new HashSet<Type> { typeof(Echo) }
             });
 
@@ -100,6 +100,7 @@ namespace TestService1
         public string From { get; set; }
     }
 
+    [Restrict(RequestAttributes.Jsv)]
     public class Service1External : IReturn<string>
     {
         public string From { get; set; }
