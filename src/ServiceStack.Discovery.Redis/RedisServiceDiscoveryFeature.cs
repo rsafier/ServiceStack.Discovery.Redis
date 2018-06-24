@@ -32,13 +32,13 @@ namespace ServiceStack.Discovery.Redis
         public Dictionary<string, string> Meta { get; set; } = new Dictionary<string, string>();
         public DateTime LastUpdateOn { get; set; }
     }
-    
+
     public class RedisHostMasterInfo : IMeta
     {
         /// <summary>
         /// InstanceId of node which is acting HostMaster
         /// </summary>
-        public Guid NodeId { get; set; }       
+        public Guid NodeId { get; set; }
         public string HostName { get; set; }
         public string WebHostUrl { get; set; }
         public TimeSpan Uptime { get; set; }
@@ -46,7 +46,7 @@ namespace ServiceStack.Discovery.Redis
         public DateTime LastUpdateOn { get; set; }
 
     }
-    
+
     [Route("/RedisServiceDiscovery/GetServiceRequestTypes")]
     [Exclude(Feature.Metadata)]
     [Restrict(VisibilityTo = RequestAttributes.None)]
@@ -114,7 +114,7 @@ namespace ServiceStack.Discovery.Redis
         /// <summary>
         /// If remote gateway is required baseUrl is resolved and provided so a custom gateway can be constructed.
         /// </summary>
-        public Func<string,Type, IServiceGateway> SetServiceGateway;
+        public Func<string, Type, IServiceGateway> SetServiceGateway;
         /// <summary>
         /// Types in this list will be forced to resolve to a host, regardless if the type is being locally served.
         /// </summary>
@@ -218,17 +218,17 @@ namespace ServiceStack.Discovery.Redis
             HostMasterInfo.WebHostUrl = Config.WebHostUrl;
             HostMasterInfo.NodeId = Config.NodeId;
             appHost.GetContainer().AddTransient<IServiceGatewayFactory>(c => new RedisServiceDiscoveryGateway());
-
         }
 
         private void StartBackgroundLoopTimer(IAppHost obj)
-        { 
+        {
             BackgroundLoopTimer = new Timer(TimerTick, null, 0, 0); //start timer and whole SCC process
         }
 
         private void DisposeCallback(IAppHost obj)
         {
-            Dispose();
+            BackgroundLoopTimer.Dispose();
+            UnregisterToRSD();            
         }
 
         public string ResolveBaseUrl(Type dtoType)
@@ -265,11 +265,31 @@ namespace ServiceStack.Discovery.Redis
             }
         }
 
+        private void UnregisterToRSD()
+        {
+            using (var r = HostContext.AppHost.GetRedisClient())
+            {
+                using (var p = r.CreatePipeline())
+                {
+                    UnregisterTypes(p);
+                    UnregisterNode(p);
+                    if (CanHostMaster)
+                    {
+                        p.QueueCommand(q=>q.Remove(RedisHostKey));
+                    }
+                    p.Flush();
+                }                
+            }
+        }
+
         private void RegisterNode(IRedisPipeline p)
         {
-            p.QueueCommand(q => q.Set(RedisNodeKey, Config, NodeTimeoutPeriod));            
+            p.QueueCommand(q => q.Set(RedisNodeKey, Config, NodeTimeoutPeriod));
         }
-         
+        private void UnregisterNode(IRedisPipeline p)
+        {
+            p.QueueCommand(q => q.Remove(RedisNodeKey));
+        }
 
         private void RegisterTypes(IRedisPipeline p)
         {
@@ -279,12 +299,20 @@ namespace ServiceStack.Discovery.Redis
             }
         }
 
+        private void UnregisterTypes(IRedisPipeline p)
+        {
+            foreach (var typeName in TypeNames)
+            {
+                p.QueueCommand(q => q.RemoveByPattern("{0}:req:*:{1}".Fmt(RedisPrefix, NodeId.ToString())));
+            }
+        }
+
         private void HandleHostMasterRole(IRedisClient r)
         {
             var currentMaster = r.Get<RedisHostMasterInfo>(RedisHostKey);
             var hasTakenMasterRole = false;
             if (currentMaster == null)//try to become master
-            { 
+            {
                 if (r.SetValueIfNotExists(RedisHostKey, HostMasterInfo.ToJson()))
                 {
                     IsHostMaster = true;
@@ -298,7 +326,7 @@ namespace ServiceStack.Discovery.Redis
                 }
             }
             if (IsHostMaster) //We think we are master
-            {                
+            {
                 if (currentMaster == null) currentMaster = r.Get<RedisHostMasterInfo>(RedisHostKey);
                 if (currentMaster.NodeId.Equals(NodeId))
                 {   //Yep its ours, update & kick timeout 
@@ -316,7 +344,7 @@ namespace ServiceStack.Discovery.Redis
                     Log.DebugFormat("NodeId:{0} has lost HostMaster role to {1}", NodeId, currentMaster.NodeId);
                 }
             }
-        }        
+        }
 
         public void Dispose()
         {
@@ -359,7 +387,7 @@ namespace ServiceStack.Discovery.Redis
         public override IServiceGateway GetGateway(Type requestType)
         {
             var feature = HostContext.GetPlugin<RedisServiceDiscoveryFeature>();
-            
+
             if (!feature.NeverRunViaLocalGateway.Contains(requestType) && HostContext.Metadata.RequestTypes.Contains(requestType))
                 return localGateway;
             var baseUrl = feature.ResolveBaseUrl(requestType);
