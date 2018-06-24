@@ -12,12 +12,12 @@
     <tags>servicestack plugin discovery servicediscovery microservices redis</tags>
     <releaseNotes>See github project for details</releaseNotes>
     <dependencies>
-      <dependency id="ServiceStack" version="[4.0.56, 5)" />
-      <dependency id="ServiceStack.Common" version="[4.0.56, 5)" />
-      <dependency id="ServiceStack.Text" version="[4.0.56, 5)" />
-      <dependency id="ServiceStack.Redis" version="[4.0.56, 5)" />
-      <dependency id="ServiceStack.Client" version="[4.0.56, 5)" />
-      <dependency id="ServiceStack.Interfaces" version="[4.0.56, 5)" />
+      <dependency id="ServiceStack" version="[5.1, 6)" />
+      <dependency id="ServiceStack.Common" version="[5.1, 6)" />
+      <dependency id="ServiceStack.Text" version="[5.1, 6)" />
+      <dependency id="ServiceStack.Redis" version="[5.1, 6)" />
+      <dependency id="ServiceStack.Client" version="[5.1, 6)" />
+      <dependency id="ServiceStack.Interfaces" version="[5.1, 6)" />
     </dependencies>
   </metadata>
 </package>
