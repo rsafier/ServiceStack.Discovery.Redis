@@ -93,11 +93,12 @@ Services can be excluded from automatic registration via
 
 ![Screen shot of test apps](images/SampleScreenshot.png)
 
-####Process details
+### Process details
 On ServiceStack completing initialization `ServiceStack.Discovery.Redis` will start a periodic timer to refresh the node state every `NodeRefreshPeriod`. Each instance of AppHost will have a new `Guid` generated on startup as `NodeId` to ensure complete uniqueness.
 
 On each timer event, the exposed request types are updated, as well as local node `RedisDiscoveryNodeInfo`. Custom actions can be triggered on refresh by registering in `OnNodeRefreshActions`
 
 If the `RedisDiscoveryRoles.CanHostMaster` role is set (default, unless removed from `Config.Roles` list) it will check is a HostName key already exists. If it does, it will attempt to set a key for the HostName, effectively acting as a lock. If the key is obtained then that `NodeId` will gain the `RedisDiscoveryRoles.HostMaster`. If the Node is `RedisDiscoveryRoles.HostMaster` then it will update it's `RedisHostMasterInfo` record and call custom `OnHostRefreshActions`
 
-#####Also see [ServiceStack.SimpleCloudControl](https://github.com/rsafier/ServiceStack.SimpleCloudControl) for additional plugins which can utilize the information `ServiceStack.Discovery.Redis` publishes to Redis for additional value (MQ Control, etc).
+### Also see
+[ServiceStack.SimpleCloudControl](https://github.com/rsafier/ServiceStack.SimpleCloudControl) for additional plugins which can utilize the information `ServiceStack.Discovery.Redis` publishes to Redis for additional value (MQ Control, etc).

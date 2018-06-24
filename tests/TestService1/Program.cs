@@ -15,7 +15,7 @@ using TestService2;
 
 namespace TestService1
 {
-    public class AppHost : AppHostHttpListenerSmartPoolBase
+    public class AppHost : AppHostHttpListenerPoolBase
     {
         public AppHost() : base("TestService1", typeof(AppHost).Assembly)
         { }
@@ -27,7 +27,7 @@ namespace TestService1
 
         public override void Configure(Container container)
         {
-            container.Register<IRedisClientsManager>(new RedisManagerPool("localhost:6379", new RedisPoolConfig { MaxPoolSize = 100, }));
+            container.Register<IRedisClientsManager>(new RedisManagerPool(AppSettings.Get("RedisServer", "localhost:6379"), new RedisPoolConfig { MaxPoolSize = 100, }));
             SetConfig(new HostConfig
             {
                 WebHostUrl = HostAt.Replace("*", Environment.MachineName),

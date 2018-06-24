@@ -217,7 +217,7 @@ namespace ServiceStack.Discovery.Redis
             Config.WebHostUrl = appHost.Config.WebHostUrl;
             HostMasterInfo.WebHostUrl = Config.WebHostUrl;
             HostMasterInfo.NodeId = Config.NodeId;
-            appHost.GetContainer().Register<IServiceGatewayFactory>(c => new RedisServiceDiscoveryGateway()).ReusedWithin(Funq.ReuseScope.None);
+            appHost.GetContainer().AddTransient<IServiceGatewayFactory>(c => new RedisServiceDiscoveryGateway());
 
         }
 
@@ -249,6 +249,7 @@ namespace ServiceStack.Discovery.Redis
 
         private void RegisterToRSD()
         {
+            var ts = System.Diagnostics.Stopwatch.StartNew();
             using (var r = HostContext.AppHost.GetRedisClient())
             {
                 using (var p = r.CreatePipeline())
@@ -263,6 +264,8 @@ namespace ServiceStack.Discovery.Redis
                 }
                 OnNodeRefreshActions.Each(a => a());
             }
+            ts.Stop();
+            System.Diagnostics.Debug.Print(ts.ElapsedTicks.ToString());
         }
 
         private void RegisterNode(IRedisPipeline p)
