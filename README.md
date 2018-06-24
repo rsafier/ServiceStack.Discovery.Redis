@@ -56,7 +56,7 @@ Plugins.Add(new RedisServiceDiscoveryFeature(){
 });
 ```
 
-#### Filtering Services from Discovery
+### Filtering Services from Discovery
 Services can be excluded from automatic registration via
 
 - `public HashSet<Type> ExcludedTypes`
