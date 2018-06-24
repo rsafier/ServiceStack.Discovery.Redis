@@ -46,7 +46,7 @@ catch(RedisServiceDiscoveryGatewayException e)
 }
 ```
 
-####Customizing ServiceClient that Gateway service resolves
+### Customizing ServiceClient that Gateway service resolves
 Note: will throw `RedisServiceDiscoveryGatewayException` if no baseUrl can be resolved. Default behavior will try to do basic resolution of the client type (JSON/JSV/XML) and if HTTPS is required.
 
 ```c#
@@ -73,7 +73,7 @@ Services can be excluded from automatic registration via
 
 ### Requirements / Notes
 
-- Requires ServiceStack version 4.0.56 or higher
+- Requires ServiceStack version 5.1 or higher & .NET 4.7.2 
 - A common Redis instance that all nodes in your discovery cluster register in the IOC (`IRedisClientsManager`) prior to loading plugin
 - Set `HostConfig.WebHostUrl` to a connectable BaseUrl that will be used
 - ServiceStack license is practically required. [Free Quota](https://servicestack.net/download#free-quotas) limitation of 6000 Redis requests/hr could easily be exceeded, depending on the Node refresh period and number of exposed DTOs.

@@ -249,7 +249,6 @@ namespace ServiceStack.Discovery.Redis
 
         private void RegisterToRSD()
         {
-            var ts = System.Diagnostics.Stopwatch.StartNew();
             using (var r = HostContext.AppHost.GetRedisClient())
             {
                 using (var p = r.CreatePipeline())
@@ -264,8 +263,6 @@ namespace ServiceStack.Discovery.Redis
                 }
                 OnNodeRefreshActions.Each(a => a());
             }
-            ts.Stop();
-            System.Diagnostics.Debug.Print(ts.ElapsedTicks.ToString());
         }
 
         private void RegisterNode(IRedisPipeline p)
