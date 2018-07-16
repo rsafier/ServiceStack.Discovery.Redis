@@ -121,6 +121,9 @@ namespace ServiceStack.Discovery.Redis
         public HashSet<Type> NeverRunViaLocalGateway = new HashSet<Type>();
         public string RedisNodeKey { get; private set; }
 
+        private string RedisNodeRefreshKeySet;
+        private bool FirstNodeRegistration = true;
+        private string RefreshScriptSHA1;
         /// <summary>
         /// Only valid if IsHostMaster
         /// </summary>
@@ -150,7 +153,7 @@ namespace ServiceStack.Discovery.Redis
         /// <summary>
         /// How quickly RSD data from this node will expire if not refreshed (RSD will assume your dead, because your keys will be expired via TTL on Redis server). 
         /// </summary>
-        public TimeSpan NodeTimeoutPeriod { get; set; } = TimeSpan.FromSeconds(30);
+        public TimeSpan NodeTimeoutPeriod { get; set; } = TimeSpan.FromSeconds(5);
 
         public bool CanHostMaster
         {
@@ -211,6 +214,7 @@ namespace ServiceStack.Discovery.Redis
             appHost.OnDisposeCallbacks.Add(DisposeCallback);
 
             RedisNodeKey = "{0}:node:{1}:{2}:{3}".Fmt(RedisPrefix, HostName, HostContext.ServiceName, NodeId);
+            RedisNodeRefreshKeySet = "{0}:node:{1}:{2}:Keys:{3}".Fmt(RedisPrefix, HostName, HostContext.ServiceName, NodeId);
             Config.NodeId = NodeId;
             Config.HostName = HostName;
             Config.ServiceName = HostContext.ServiceName;
@@ -228,7 +232,7 @@ namespace ServiceStack.Discovery.Redis
         private void DisposeCallback(IAppHost obj)
         {
             BackgroundLoopTimer.Dispose();
-            UnregisterToRSD();            
+            UnregisterToRSD();
         }
 
         public string ResolveBaseUrl(Type dtoType)
@@ -251,6 +255,11 @@ namespace ServiceStack.Discovery.Redis
         {
             using (var r = HostContext.AppHost.GetRedisClient())
             {
+                if (FirstNodeRegistration)
+                {
+                    string lauScript = $@"local x = redis.call('smembers','{RedisNodeRefreshKeySet}') for _,key in ipairs(x) do redis.call('EXPIRE',key,ARGV[1]) end";
+                    RefreshScriptSHA1 = r.LoadLuaScript(lauScript);
+                }
                 using (var p = r.CreatePipeline())
                 {
                     RegisterTypes(p);
@@ -275,10 +284,10 @@ namespace ServiceStack.Discovery.Redis
                     UnregisterNode(p);
                     if (CanHostMaster)
                     {
-                        p.QueueCommand(q=>q.Remove(RedisHostKey));
+                        p.QueueCommand(q => q.Remove(RedisHostKey));
                     }
                     p.Flush();
-                }                
+                }
             }
         }
 
@@ -290,12 +299,24 @@ namespace ServiceStack.Discovery.Redis
         {
             p.QueueCommand(q => q.Remove(RedisNodeKey));
         }
+        
 
         private void RegisterTypes(IRedisPipeline p)
         {
-            foreach (var typeName in TypeNames)
+
+            if (FirstNodeRegistration)
             {
-                p.QueueCommand(q => q.Set("{0}:req:{1}:{2}".Fmt(RedisPrefix, typeName, NodeId.ToString()), HostContext.AppHost.Config.WebHostUrl, NodeTimeoutPeriod));
+                foreach (var typeName in TypeNames)
+                {
+                    string key = "{0}:req:{1}:{2}".Fmt(RedisPrefix, typeName, NodeId.ToString());
+                    p.QueueCommand(q => q.Set(key, HostContext.AppHost.Config.WebHostUrl));
+                    p.QueueCommand(q => q.AddItemToSet(RedisNodeRefreshKeySet, key));
+                }
+                FirstNodeRegistration = false;
+            }
+            else
+            {
+                p.QueueCommand(q => q.ExecLuaSha(RefreshScriptSHA1, NodeTimeoutPeriod.TotalSeconds.ToString()));
             }
         }
 
@@ -305,6 +326,7 @@ namespace ServiceStack.Discovery.Redis
             {
                 p.QueueCommand(q => q.RemoveByPattern("{0}:req:*:{1}".Fmt(RedisPrefix, NodeId.ToString())));
             }
+            p.QueueCommand(q => q.Remove(RedisNodeRefreshKeySet));
         }
 
         private void HandleHostMasterRole(IRedisClient r)
