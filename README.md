@@ -84,10 +84,11 @@ Services can be excluded from automatic registration via
 
 ### Redis Key Structure
 
-- **{RedisPrefix}:hosts:lastseen** - Hashset  of HostName key UnixDateTime of last update value
-- **{RedisPrefix}:host:{HostName}** - Key  containing `RedisHostMasterInfo`
-- **{RedisPrefix}:node:{HostName}:{ServiceName}:{NodeId}** - Key containing `RedisDiscoveryNodeInfo`
-- **{RedisPrefix}:req:{FullTypeName}:{NodeId}** - Key containing baseUrl for FullType @ NodeId
+- **\{RedisPrefix}:hosts:lastseen** - Hashset  of HostName key UnixDateTime of last update value
+- **\{RedisPrefix}:host:\{HostName}** - Key  containing `RedisHostMasterInfo`
+- **\{RedisPrefix}:node:\{HostName}:\{ServiceName}:\{NodeId}** - Key containing `RedisDiscoveryNodeInfo`
+- **\{RedisPrefix}:req:\{FullTypeName}:\{NodeId}** - Key containing baseUrl for FullType @ NodeId
+- **\{RedisPrefix}:node:\{HostName}:Keys:\{NodeId}** -Lua TTL refresh script uses this set of keynames
 - The default `RedisPrefix = "rsd"`.
 - Keys will all have TTL set to `NodeTimeoutPeriod`
 
