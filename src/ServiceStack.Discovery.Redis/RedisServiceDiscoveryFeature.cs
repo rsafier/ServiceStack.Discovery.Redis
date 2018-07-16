@@ -88,6 +88,11 @@ namespace ServiceStack.Discovery.Redis
     /// </summary>
     public class RedisServiceDiscoveryFeature : IPlugin, IDisposable
     {
+        public const string TypeKeyFormatString = "{0}:req:{1}:{2}";
+        public const string HostKeyFormatString = "{0}:host:{1}";
+        public const string NodeKeyFormatString = "{0}:node:{1}:{2}:{3}";
+        public const string NodeRefreshKeySetString = "{0}:node:{1}:{2}:Keys:{3}";
+        public const string UnregisterTypesFormatString = "{0}:req:*:{1}";
         private readonly ILog Log = LogManager.GetLogger(typeof(RedisServiceDiscoveryFeature));
         private Timer BackgroundLoopTimer;
         private HashSet<string> typeNames;
@@ -194,7 +199,7 @@ namespace ServiceStack.Discovery.Redis
         public List<Action> OnHostRefreshActions { get; private set; } = new List<Action>();
         public RedisServiceDiscoveryFeature()
         {
-            RedisHostKey = "rsd:host:{0}".Fmt(HostName);
+            RedisHostKey = HostKeyFormatString.Fmt("rsd",HostName);
             CanHostMaster = true;
 
         }
@@ -202,7 +207,7 @@ namespace ServiceStack.Discovery.Redis
         {
             RedisPrefix = redisPrefix;
             CanHostMaster = canHostMaster;
-            RedisHostKey = "{0}:host:{1}".Fmt(RedisPrefix, HostName);
+            RedisHostKey = HostKeyFormatString.Fmt(RedisPrefix, HostName);
         }
 
         public void Register(IAppHost appHost)
@@ -213,8 +218,8 @@ namespace ServiceStack.Discovery.Redis
             appHost.AfterInitCallbacks.Add(StartBackgroundLoopTimer);
             appHost.OnDisposeCallbacks.Add(DisposeCallback);
 
-            RedisNodeKey = "{0}:node:{1}:{2}:{3}".Fmt(RedisPrefix, HostName, HostContext.ServiceName, NodeId);
-            RedisNodeRefreshKeySet = "{0}:node:{1}:{2}:Keys:{3}".Fmt(RedisPrefix, HostName, HostContext.ServiceName, NodeId);
+            RedisNodeKey = NodeKeyFormatString.Fmt(RedisPrefix, HostName, HostContext.ServiceName, NodeId);
+            RedisNodeRefreshKeySet = NodeRefreshKeySetString.Fmt(RedisPrefix, HostName, HostContext.ServiceName, NodeId);
             Config.NodeId = NodeId;
             Config.HostName = HostName;
             Config.ServiceName = HostContext.ServiceName;
@@ -308,7 +313,7 @@ namespace ServiceStack.Discovery.Redis
             {
                 foreach (var typeName in TypeNames)
                 {
-                    string key = "{0}:req:{1}:{2}".Fmt(RedisPrefix, typeName, NodeId.ToString());
+                    string key = TypeKeyFormatString.Fmt(RedisPrefix, typeName, NodeId.ToString());
                     p.QueueCommand(q => q.Set(key, HostContext.AppHost.Config.WebHostUrl));
                     p.QueueCommand(q => q.AddItemToSet(RedisNodeRefreshKeySet, key));
                 }
@@ -324,7 +329,7 @@ namespace ServiceStack.Discovery.Redis
         {
             foreach (var typeName in TypeNames)
             {
-                p.QueueCommand(q => q.RemoveByPattern("{0}:req:*:{1}".Fmt(RedisPrefix, NodeId.ToString())));
+                p.QueueCommand(q => q.RemoveByPattern(UnregisterTypesFormatString.Fmt(RedisPrefix, NodeId.ToString())));
             }
             p.QueueCommand(q => q.Remove(RedisNodeRefreshKeySet));
         }
@@ -376,12 +381,17 @@ namespace ServiceStack.Discovery.Redis
 
     public class RedisServiceDiscoveryServices : Service
     {
+        private const string ResolveNodesForRequestFormatString = "{0}:req:{1}:*";
+        private const string GetActiveNodeFormatString = "{0}:node:*";
+        private const string GetActiveHostsFormatString = "{0}:host:*";
+        private static readonly string RedisPrefix = HostContext.GetPlugin<RedisServiceDiscoveryFeature>().RedisPrefix;
+
         public Dictionary<string, string> Any(ResolveNodesForRequest req)
         {
             if (req.TypeFullName.IsEmpty())
                 return null;
-            var typeKey = "{0}:req:{1}:".Fmt(HostContext.GetPlugin<RedisServiceDiscoveryFeature>().RedisPrefix, req.TypeFullName);
-            var keys = Redis.GetKeysByPattern(typeKey + "*");
+            var typeKey = ResolveNodesForRequestFormatString.Fmt(HostContext.GetPlugin<RedisServiceDiscoveryFeature>().RedisPrefix, req.TypeFullName);
+            var keys = Redis.GetKeysByPattern(typeKey);
             if (keys.Any())
             {
                 return Redis.GetAll<string>(keys) as Dictionary<string, string>;
@@ -394,13 +404,13 @@ namespace ServiceStack.Discovery.Redis
             return Any(req.ConvertTo<ResolveNodesForRequest>())?.First().Value;
         }
         public List<RedisDiscoveryNodeInfo> Any(GetActiveNodes req)
-        {
-            return Redis.GetAll<RedisDiscoveryNodeInfo>(Redis.GetKeysByPattern("{0}:node:*".Fmt(HostContext.GetPlugin<RedisServiceDiscoveryFeature>().RedisPrefix))).Values.ToList();
+        {            
+            return Redis.GetAll<RedisDiscoveryNodeInfo>(Redis.GetKeysByPattern(GetActiveNodeFormatString.Fmt(RedisPrefix))).Values.ToList();
         }
 
         public List<RedisHostMasterInfo> Any(GetActiveHosts req)
         {
-            return Redis.GetAll<RedisHostMasterInfo>(Redis.GetKeysByPattern("{0}:host:*".Fmt(HostContext.GetPlugin<RedisServiceDiscoveryFeature>().RedisPrefix))).Values.ToList();
+            return Redis.GetAll<RedisHostMasterInfo>(Redis.GetKeysByPattern(GetActiveHostsFormatString.Fmt(RedisPrefix))).Values.ToList();
         }
     }
 
