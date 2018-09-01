@@ -9,8 +9,7 @@ using ServiceStack.Logging;
 using ServiceStack.DataAnnotations;
 using ServiceStack.Web;
 using ServiceStack.Redis.Pipeline;
-using System.Net;
-using ServiceStack.Discovery.Redis;
+using System.Net; 
 
 namespace ServiceStack.Discovery.Redis
 {
@@ -84,7 +83,7 @@ namespace ServiceStack.Discovery.Redis
     }
 
     /// <summary>
-    /// Provides Redis backed service-discovery for ServiceStack 4.0.56 or greater    
+    /// Provides Redis backed service-discovery for ServiceStack 5.2 or greater    
     /// </summary>
     public class RedisServiceDiscoveryFeature : IPlugin, IDisposable
     {
@@ -215,7 +214,7 @@ namespace ServiceStack.Discovery.Redis
 
         public void Register(IAppHost appHost)
         {
-            if (appHost.TryResolve<IRedisClientsManager>() == null && RedisClientsManager ==null)
+            if (appHost.TryResolve<IRedisClientsManager>() == null && RedisClientsManager == null)
                 throw new Exception("Required: IRedisClientsManager to be registered in IOC or provide RedisClientsManager on construction.");
             if (RedisClientsManager == null)
             {
@@ -408,7 +407,6 @@ namespace ServiceStack.Discovery.Redis
                     return redis.GetAll<string>(keys) as Dictionary<string, string>;
                 }
             }
-                
             return null;
         }
 
@@ -455,20 +453,7 @@ namespace ServiceStack.Discovery.Redis
             {
                 baseUrl = baseUrl.Insert(4, "s"); //tack in the secure if required and not in base listening url
             }
-            IServiceGateway gateway = null;
-            if (requestType.HasJsonClientSupport())
-            {
-                gateway = new JsonServiceClient(baseUrl);
-            }
-            else if (requestType.HasJsvClientSupport())
-            {
-                gateway = new JsvServiceClient(baseUrl);
-            }
-            else if (requestType.HasXmlClientSupport())
-            {
-                gateway = new XmlServiceClient(baseUrl);
-            }
-            return gateway ?? (IServiceGateway)new JsonServiceClient(baseUrl); //default will be Json if logic doesn't figure it out
+            return new JsonHttpClient(baseUrl); 
 
         }
     }

@@ -24,35 +24,35 @@ To call external services, you call the Gateway and let it handle the routing fo
 ```c#
 public class MyService : Service
 {
-public void Any(RequestDTO dto)
-{
-// If the gateway detects the type is locally served by the AppHost instance
-// the call will be functionally equilevent to calling HostContext.AppHost.ExecuteService(req) directly
-var internalCall = Gateway.Send(new InternalDTO { ... });
-// The gateway will automatically route external requests to the correct service if the type is not local
-// and it can resolve the `baseUrl` for the external service.
-var externalCall = Gateway.Send(new ExternalDTO { ... });
+    public void Any(RequestDTO dto)
+    {
+        // If the gateway detects the type is locally served by the AppHost instance
+        // the call will be functionally equilevent to calling HostContext.AppHost.ExecuteService(req) directly
+        var internalCall = Gateway.Send(new InternalDTO { ... });
+        // The gateway will automatically route external requests to the correct service if the type is not local
+        // and it can resolve the `baseUrl` for the external service.
+        var externalCall = Gateway.Send(new ExternalDTO { ... });
 
-try
-{
-var unregisteredExternalCall = Gateway.Send(new ExternalDTOWithNoActiveNodesOnline());
-}
-catch(RedisServiceDiscoveryGatewayException e)
-{
-// If a DTO type is not local or resolvable by the Redis discovery process
-// a RedisServiceDiscoveryGatewayException will be thrown
-}
-}
+        try
+        {
+            var unregisteredExternalCall = Gateway.Send(new ExternalDTOWithNoActiveNodesOnline());
+        }
+        catch(RedisServiceDiscoveryGatewayException e)
+        {
+            // If a DTO type is not local or resolvable by the Redis discovery process
+            // a RedisServiceDiscoveryGatewayException will be thrown
+        }
+    }
 }
 ```
 
 ### Customizing ServiceClient that Gateway service resolves
-Note: will throw `RedisServiceDiscoveryGatewayException` if no baseUrl can be resolved. Default behavior will try to do basic resolution of the client type (JSON/JSV/XML) and if HTTPS is required.
+Note: will throw `RedisServiceDiscoveryGatewayException` if no baseUrl can be resolved. Default behavior will use JsonHttpClient and if HTTPS is required.
 
 ```c#
 Plugins.Add(new RedisServiceDiscoveryFeature(){ 
     SetServiceGateway = (baseUrl, requestType) => 
-       new JsonServiceClient(baseUrl) { UserAgent = "Custom User Agent" }
+       new JsvServiceClient(baseUrl) { UserAgent = "Custom User Agent" }
 });
 ```
 
@@ -73,7 +73,7 @@ Services can be excluded from automatic registration via
 
 ### Requirements / Notes
 
-- Requires ServiceStack version 5.2 or higher & .NET 4.7.2
+- Requires ServiceStack version 5.2+
 - A common Redis instance that all nodes in your discovery cluster register in the IOC (`IRedisClientsManager`) prior to loading plugin
 - Set `HostConfig.WebHostUrl` to a connectable BaseUrl that will be used
 - ServiceStack license is practically required. [Free Quota](https://servicestack.net/download#free-quotas) limitation of 6000 Redis requests/hr could easily be exceeded, depending on the Node refresh period and number of exposed DTOs.

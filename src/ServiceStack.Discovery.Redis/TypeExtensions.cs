@@ -33,18 +33,10 @@ namespace ServiceStack.Discovery.Redis
         public static IEnumerable<Type> WithoutNativeTypes(this IEnumerable<Type> types, NativeTypesFeature nativeTypes)
         {
             return nativeTypes == null
-
                 ? types
                 : types
                     .Where(x => !nativeTypes.MetadataTypesConfig.IgnoreTypes.Contains(x))
                     .Where(x => !nativeTypes.MetadataTypesConfig.IgnoreTypesInNamespaces.Contains(x.Namespace));
         }
-         
-        public static bool HasXmlClientSupport(this Type type) => !type.AllAttributes<ExcludeAttribute>().Any(t => t.Feature.HasFlag(Feature.Xml)) &&
-                                                                  type.AllAttributes<RestrictAttribute>().All(t => t.HasAccessTo(RequestAttributes.Xml)); 
-        public static bool HasJsvClientSupport(this Type type) => !type.AllAttributes<ExcludeAttribute>().Any(t => t.Feature.HasFlag(Feature.Jsv)) &&
-                                                                  type.AllAttributes<RestrictAttribute>().All(t => t.HasAccessTo(RequestAttributes.Jsv));
-        public static bool HasJsonClientSupport(this Type type) => !type.AllAttributes<ExcludeAttribute>().Any(t => t.Feature.HasFlag(Feature.Json)) &&
-                                                                  type.AllAttributes<RestrictAttribute>().All(t => t.HasAccessTo(RequestAttributes.Json)); 
     }
 }

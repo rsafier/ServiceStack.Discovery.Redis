@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net472;</TargetFrameworks>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
@@ -14,27 +14,24 @@
     <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/rsafier/ServiceStack.Discovery.Redis</PackageProjectUrl>
     <PackageIconUrl>https://servicestack.net/img/logo-32.png</PackageIconUrl>
-    <Version>2.0.1</Version>
+    <Version>2.0.2</Version>
     <Authors>Richard J. Safier (@rsafier)</Authors>
     <PackageTags>servicestack plugin discovery servicediscovery microservices redis netstandard20</PackageTags>
     <PackageReleaseNotes>See github for details.</PackageReleaseNotes>
   </PropertyGroup>
     <!-- common NuGet package refs that affect all projects -->
     <ItemGroup>
+      <PackageReference Include="ServiceStack.HttpClient" Version="5.2.0" />
       <PackageReference Include="ServiceStack.Server" Version="5.2" />
     </ItemGroup>
-
-
-    <!-- .NET Standard 2.0 references, compilation flags and build options -->
+  <!-- .NET Standard 2.0 references, compilation flags and build options -->
     <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
       <DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
     </PropertyGroup>
     <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
     </ItemGroup>
-
-
-    <!-- .NET 4.5 references, compilation flags and build options -->
-    <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
+  <!-- .NET 4.5 references, compilation flags and build options -->
+    <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
       <Reference Include="mscorlib" />
       <Reference Include="System" />
       <Reference Include="System.Core" />
@@ -46,7 +43,7 @@
       <Reference Include="System.Xml" />
       <Reference Include="System.Configuration" />
     </ItemGroup>
-    <PropertyGroup Condition=" '$(TargetFramework)' == 'net45'">
-      <DefineConstants>NET45;NETFULL</DefineConstants>
+    <PropertyGroup Condition=" '$(TargetFramework)' == 'net472'">
+      <DefineConstants>NET472;NETFULL</DefineConstants>
     </PropertyGroup>
 </Project>
