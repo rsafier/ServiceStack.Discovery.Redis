@@ -9,15 +9,18 @@
     <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
     <iconUrl>https://servicestack.net/img/logo-32.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <tags>servicestack plugin discovery servicediscovery microservices redis</tags>
+    <tags>servicestack plugin discovery servicediscovery microservices redis netstandard20</tags>
     <releaseNotes>See github project for details</releaseNotes>
     <dependencies>
-      <dependency id="ServiceStack" version="[5.2, 6)" />
-      <dependency id="ServiceStack.Common" version="[5.2, 6)" />
-      <dependency id="ServiceStack.Text" version="[5.2, 6)" />
-      <dependency id="ServiceStack.Redis" version="[5.2, 6)" />
-      <dependency id="ServiceStack.Client" version="[5.2, 6)" />
-      <dependency id="ServiceStack.Interfaces" version="[5.2, 6)" />
+      <group targetFramework="net45">
+        <dependency id="ServiceStack.Server" version="5.2" />
+      </group>
+      <group targetFramework=".netstandard2.0">
+        <dependency id="ServiceStack.Server" version="5.2" />
+      </group>
     </dependencies>
+    <files>
+      <file src="lib\**" target="lib/{framework name}[{version}]" />
+    </files>
   </metadata>
 </package>

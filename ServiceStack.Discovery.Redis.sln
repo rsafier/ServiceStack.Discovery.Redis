@@ -1,10 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2016
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceStack.Discovery.Redis", "src\ServiceStack.Discovery.Redis\ServiceStack.Discovery.Redis.csproj", "{1A14AC71-BE64-4910-9FD2-2E59ADE36319}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{F816C505-5414-411F-9B98-3F420E57222B}"
 	ProjectSection(SolutionItems) = preProject
 		LICENSE = LICENSE
@@ -19,16 +17,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestService2", "tests\TestS
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{981036CF-6A82-4716-8B12-D91B558EA253}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceStack.Discovery.Redis", "src\ServiceStack.Discovery.Redis\ServiceStack.Discovery.Redis.csproj", "{1FF650F4-F6B5-411F-922D-4B9FD446AE36}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{1A14AC71-BE64-4910-9FD2-2E59ADE36319}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1A14AC71-BE64-4910-9FD2-2E59ADE36319}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1A14AC71-BE64-4910-9FD2-2E59ADE36319}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1A14AC71-BE64-4910-9FD2-2E59ADE36319}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F614F916-6946-4A89-B355-41BD8803F025}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F614F916-6946-4A89-B355-41BD8803F025}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F614F916-6946-4A89-B355-41BD8803F025}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -37,13 +33,20 @@ Global
 		{B968AD53-F545-4771-8A9F-3FF8E35B7D95}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B968AD53-F545-4771-8A9F-3FF8E35B7D95}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B968AD53-F545-4771-8A9F-3FF8E35B7D95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1FF650F4-F6B5-411F-922D-4B9FD446AE36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FF650F4-F6B5-411F-922D-4B9FD446AE36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1FF650F4-F6B5-411F-922D-4B9FD446AE36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1FF650F4-F6B5-411F-922D-4B9FD446AE36}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{1A14AC71-BE64-4910-9FD2-2E59ADE36319} = {981036CF-6A82-4716-8B12-D91B558EA253}
 		{F614F916-6946-4A89-B355-41BD8803F025} = {F75D964A-E109-493D-99AC-6469A76040FB}
 		{B968AD53-F545-4771-8A9F-3FF8E35B7D95} = {F75D964A-E109-493D-99AC-6469A76040FB}
+		{1FF650F4-F6B5-411F-922D-4B9FD446AE36} = {981036CF-6A82-4716-8B12-D91B558EA253}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0B88CCD9-533E-4EF6-BC82-D424536D0DAC}
 	EndGlobalSection
 EndGlobal
