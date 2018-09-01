@@ -100,7 +100,6 @@ namespace TestService1
         public string From { get; set; }
     }
 
-    [Restrict(RequestAttributes.Jsv)]
     public class Service1External : IReturn<string>
     {
         public string From { get; set; }
