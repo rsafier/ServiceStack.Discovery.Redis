@@ -36,7 +36,8 @@ namespace TestService1
             {
                 ExcludedTypes = new HashSet<Type> { typeof(ExcludedServiceByHashset) },
                 //SetServiceGateway = (baseUrl, requestType) => new JsonServiceClient(baseUrl) { UserAgent = "Custom User Agent" },
-                NeverRunViaLocalGateway = new HashSet<Type> { typeof(Echo) }
+                NeverRunViaLocalGateway = new HashSet<Type> { typeof(Echo) },
+                UseSharedServiceClients = true,
             });
 
         }

@@ -91,7 +91,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\ServiceStack.Discovery.Redis\ServiceStack.Discovery.Redis.csproj">
-      <Project>{1ff650f4-f6b5-411f-922d-4b9fd446ae36}</Project>
+      <Project>{1FF650F4-F6B5-411F-922D-4B9FD446AE36}</Project>
       <Name>ServiceStack.Discovery.Redis</Name>
     </ProjectReference>
   </ItemGroup>

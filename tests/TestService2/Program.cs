@@ -8,6 +8,7 @@ using ServiceStack.Redis;
 using ServiceStack.Text;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,7 +33,9 @@ namespace TestService2
             {
                 WebHostUrl = HostAt.Replace("*", Environment.MachineName)
             });
-            LoadPlugin(new RedisServiceDiscoveryFeature(redisClientsManager: new RedisManagerPool(AppSettings.Get("RedisServer", "localhost:6379"), new RedisPoolConfig { MaxPoolSize = 100, })));
+            LoadPlugin(new RedisServiceDiscoveryFeature(redisClientsManager: new RedisManagerPool(AppSettings.Get("RedisServer", "localhost:6379"), new RedisPoolConfig { MaxPoolSize = 100, })) {
+              UseSharedServiceClients = true
+            });
         }
     }
 

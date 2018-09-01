@@ -9,7 +9,8 @@ using ServiceStack.Logging;
 using ServiceStack.DataAnnotations;
 using ServiceStack.Web;
 using ServiceStack.Redis.Pipeline;
-using System.Net; 
+using System.Net;
+using System.Collections.Concurrent;
 
 namespace ServiceStack.Discovery.Redis
 {
@@ -110,6 +111,7 @@ namespace ServiceStack.Discovery.Redis
                 return typeNames;
             }
         }
+        public bool UseSharedServiceClients { get; set; }
         public Func<IEnumerable<Type>, IEnumerable<Type>> FilterTypes;
         /// <summary>
         /// Types that will be excluded from service discovery
@@ -200,7 +202,7 @@ namespace ServiceStack.Discovery.Redis
         public List<Action> OnHostRefreshActions { get; private set; } = new List<Action>();
         public RedisServiceDiscoveryFeature()
         {
-            RedisHostKey = HostKeyFormatString.Fmt("rsd",HostName);
+            RedisHostKey = HostKeyFormatString.Fmt("rsd", HostName);
             CanHostMaster = true;
 
         }
@@ -310,7 +312,7 @@ namespace ServiceStack.Discovery.Redis
         {
             p.QueueCommand(q => q.Remove(RedisNodeKey));
         }
-        
+
 
         private void RegisterTypes(IRedisPipeline p)
         {
@@ -323,7 +325,7 @@ namespace ServiceStack.Discovery.Redis
                     p.QueueCommand(q => q.AddItemToSet(RedisNodeRefreshKeySet, key));
                 }
                 p.QueueCommand(q => q.AddItemToSet(RedisNodeRefreshKeySet, RedisNodeRefreshKeySet));
-                p.QueueCommand(q => q.ExpireEntryIn(RedisNodeRefreshKeySet, NodeTimeoutPeriod)); 
+                p.QueueCommand(q => q.ExpireEntryIn(RedisNodeRefreshKeySet, NodeTimeoutPeriod));
                 FirstNodeRegistration = false;
             }
             else
@@ -392,7 +394,7 @@ namespace ServiceStack.Discovery.Redis
         private const string GetActiveNodeFormatString = "{0}:node:*";
         private const string GetActiveHostsFormatString = "{0}:host:*";
         private static readonly string RedisPrefix = HostContext.GetPlugin<RedisServiceDiscoveryFeature>().RedisPrefix;
-        private IRedisClientsManager RedisClientsManager  = HostContext.GetPlugin<RedisServiceDiscoveryFeature>().RedisClientsManager;
+        private IRedisClientsManager RedisClientsManager = HostContext.GetPlugin<RedisServiceDiscoveryFeature>().RedisClientsManager;
 
         public Dictionary<string, string> Any(ResolveNodesForRequest req)
         {
@@ -433,6 +435,8 @@ namespace ServiceStack.Discovery.Redis
 
     public class RedisServiceDiscoveryGateway : ServiceGatewayFactoryBase
     {
+        private static bool UseSharedServiceClients = HostContext.GetPlugin<RedisServiceDiscoveryFeature>().UseSharedServiceClients;
+        private static ConcurrentDictionary<string, JsonHttpClient> SharedClients = new ConcurrentDictionary<string, JsonHttpClient>();
         public override IServiceGateway GetGateway(Type requestType)
         {
             var feature = HostContext.GetPlugin<RedisServiceDiscoveryFeature>();
@@ -453,8 +457,16 @@ namespace ServiceStack.Discovery.Redis
             {
                 baseUrl = baseUrl.Insert(4, "s"); //tack in the secure if required and not in base listening url
             }
-            return new JsonHttpClient(baseUrl); 
+            return UseSharedServiceClients ? ResolveServiceClient(baseUrl) : new JsonHttpClient(baseUrl);
+        }
 
+        private static JsonHttpClient ResolveServiceClient(string baseUrl)
+        {
+            if (!SharedClients.ContainsKey(baseUrl))
+            {
+                SharedClients[baseUrl] = new JsonHttpClient(baseUrl);
+            }
+            return SharedClients[baseUrl];
         }
     }
 
