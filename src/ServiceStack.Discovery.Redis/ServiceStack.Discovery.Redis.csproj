@@ -14,7 +14,7 @@
     <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/rsafier/ServiceStack.Discovery.Redis</PackageProjectUrl>
     <PackageIconUrl>https://servicestack.net/img/logo-32.png</PackageIconUrl>
-    <Version>2.0.2</Version>
+    <Version>2.0.3</Version>
     <Authors>Richard J. Safier (@rsafier)</Authors>
     <PackageTags>servicestack plugin discovery servicediscovery microservices redis netstandard20</PackageTags>
     <PackageReleaseNotes>See github for details.</PackageReleaseNotes>
