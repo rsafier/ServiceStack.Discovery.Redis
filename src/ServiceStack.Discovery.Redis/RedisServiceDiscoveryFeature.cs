@@ -125,10 +125,12 @@ namespace ServiceStack.Discovery.Redis
         /// </summary>
         public HashSet<Type> NeverRunViaLocalGateway = new HashSet<Type>();
         public string RedisNodeKey { get; private set; }
+        public IRedisClientsManager RedisClientsManager { get; set; }
 
         private string RedisNodeRefreshKeySet;
         private bool FirstNodeRegistration = true;
         private string RefreshScriptSHA1;
+
         /// <summary>
         /// Only valid if IsHostMaster
         /// </summary>
@@ -203,17 +205,22 @@ namespace ServiceStack.Discovery.Redis
             CanHostMaster = true;
 
         }
-        public RedisServiceDiscoveryFeature(string redisPrefix = "rsd", bool canHostMaster = true)
+        public RedisServiceDiscoveryFeature(string redisPrefix = "rsd", bool canHostMaster = true, IRedisClientsManager redisClientsManager = null)
         {
             RedisPrefix = redisPrefix;
             CanHostMaster = canHostMaster;
             RedisHostKey = HostKeyFormatString.Fmt(RedisPrefix, HostName);
+            RedisClientsManager = redisClientsManager;
         }
 
         public void Register(IAppHost appHost)
         {
-            if (appHost.TryResolve<IRedisClientsManager>() == null)
-                throw new Exception("Required IRedisClientsManager to be registered in IOC.");
+            if (appHost.TryResolve<IRedisClientsManager>() == null && RedisClientsManager ==null)
+                throw new Exception("Required: IRedisClientsManager to be registered in IOC or provide RedisClientsManager on construction.");
+            if (RedisClientsManager == null)
+            {
+                RedisClientsManager = appHost.TryResolve<IRedisClientsManager>();
+            }
             appHost.RegisterService<RedisServiceDiscoveryServices>();
             appHost.AfterInitCallbacks.Add(StartBackgroundLoopTimer);
             appHost.OnDisposeCallbacks.Add(DisposeCallback);
@@ -258,7 +265,7 @@ namespace ServiceStack.Discovery.Redis
 
         private void RegisterToRSD()
         {
-            using (var r = HostContext.AppHost.GetRedisClient())
+            using (var r = RedisClientsManager.GetClient())
             {
                 if (FirstNodeRegistration)
                 {
@@ -281,7 +288,7 @@ namespace ServiceStack.Discovery.Redis
 
         private void UnregisterToRSD()
         {
-            using (var r = HostContext.AppHost.GetRedisClient())
+            using (var r = RedisClientsManager.GetClient())
             {
                 using (var p = r.CreatePipeline())
                 {
@@ -385,17 +392,22 @@ namespace ServiceStack.Discovery.Redis
         private const string GetActiveNodeFormatString = "{0}:node:*";
         private const string GetActiveHostsFormatString = "{0}:host:*";
         private static readonly string RedisPrefix = HostContext.GetPlugin<RedisServiceDiscoveryFeature>().RedisPrefix;
+        private IRedisClientsManager RedisClientsManager  = HostContext.GetPlugin<RedisServiceDiscoveryFeature>().RedisClientsManager;
 
         public Dictionary<string, string> Any(ResolveNodesForRequest req)
         {
             if (req.TypeFullName.IsEmpty())
                 return null;
             var typeKey = ResolveNodesForRequestFormatString.Fmt(HostContext.GetPlugin<RedisServiceDiscoveryFeature>().RedisPrefix, req.TypeFullName);
-            var keys = Redis.GetKeysByPattern(typeKey);
-            if (keys.Any())
+            using (var redis = RedisClientsManager.GetClient())
             {
-                return Redis.GetAll<string>(keys) as Dictionary<string, string>;
+                var keys = redis.GetKeysByPattern(typeKey);
+                if (keys.Any())
+                {
+                    return redis.GetAll<string>(keys) as Dictionary<string, string>;
+                }
             }
+                
             return null;
         }
 
@@ -404,13 +416,19 @@ namespace ServiceStack.Discovery.Redis
             return Any(req.ConvertTo<ResolveNodesForRequest>())?.First().Value;
         }
         public List<RedisDiscoveryNodeInfo> Any(GetActiveNodes req)
-        {            
-            return Redis.GetAll<RedisDiscoveryNodeInfo>(Redis.GetKeysByPattern(GetActiveNodeFormatString.Fmt(RedisPrefix))).Values.ToList();
+        {
+            using (var redis = RedisClientsManager.GetClient())
+            {
+                return redis.GetAll<RedisDiscoveryNodeInfo>(redis.GetKeysByPattern(GetActiveNodeFormatString.Fmt(RedisPrefix))).Values.ToList();
+            }
         }
 
         public List<RedisHostMasterInfo> Any(GetActiveHosts req)
         {
-            return Redis.GetAll<RedisHostMasterInfo>(Redis.GetKeysByPattern(GetActiveHostsFormatString.Fmt(RedisPrefix))).Values.ToList();
+            using (var redis = RedisClientsManager.GetClient())
+            {
+                return redis.GetAll<RedisHostMasterInfo>(redis.GetKeysByPattern(GetActiveHostsFormatString.Fmt(RedisPrefix))).Values.ToList();
+            }
         }
     }
 

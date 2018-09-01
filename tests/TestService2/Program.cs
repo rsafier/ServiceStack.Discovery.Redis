@@ -27,12 +27,12 @@ namespace TestService2
 
         public override void Configure(Container container)
         {
-            container.Register<IRedisClientsManager>(new RedisManagerPool(AppSettings.Get("RedisServer", "localhost:6379"), new RedisPoolConfig { MaxPoolSize = 100, }));
+            //container.Register<IRedisClientsManager>(new RedisManagerPool(AppSettings.Get("RedisServer", "localhost:6379"), new RedisPoolConfig { MaxPoolSize = 100, }));
             SetConfig(new HostConfig
             {
                 WebHostUrl = HostAt.Replace("*", Environment.MachineName)
             });
-            LoadPlugin(new RedisServiceDiscoveryFeature());
+            LoadPlugin(new RedisServiceDiscoveryFeature(redisClientsManager: new RedisManagerPool(AppSettings.Get("RedisServer", "localhost:6379"), new RedisPoolConfig { MaxPoolSize = 100, })));
         }
     }
 
