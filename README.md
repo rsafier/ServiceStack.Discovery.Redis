@@ -74,13 +74,13 @@ Services can be excluded from automatic registration via
 ### Requirements / Notes
 
 - Requires ServiceStack version 5.2+
-- A common Redis instance that all nodes in your discovery cluster register in the IOC (`IRedisClientsManager`) prior to loading plugin
+- A common Redis instance that all nodes in your discovery cluster register in the IOC (`IRedisClientsManager`) prior to loading plugin, or set `RedisClientsManager`when registering the plugin.
 - Set `HostConfig.WebHostUrl` to a connectable BaseUrl that will be used
 - ServiceStack license is practically required. [Free Quota](https://servicestack.net/download#free-quotas) limitation of 6000 Redis requests/hr could easily be exceeded, depending on the Node refresh period and number of exposed DTOs.
 - DTOs are registered with their full type name (e.g. ServiceStack.Discovery.Redis.GetServiceRequestTypes). If you are importing your types via `Add Service Reference` and overriding your namespace you will run into issues.
 - `ResolveBaseUrl` is using a very simple policy of taking the `First()` Node matching the requested type. Additional criteria could be used by looking up NodeId details. (e.g. sort by lowest average load,uptime, etc.)
 - Sample services require a binding address as the first parameter (e.g. TestService1.exe http://*:7777/)
-- Currently default behavior doesn't take into account if service requires HTTPS, JSV vs. XML, etc. `SetServiceGateway(baseUrl, requestType)` could be used to help support that functionality if needed.
+- Defaults to JsonHttpClient `SetServiceGateway(baseUrl, requestType)` can be used to override this with your own implementation.
 
 ### Redis Key Structure
 

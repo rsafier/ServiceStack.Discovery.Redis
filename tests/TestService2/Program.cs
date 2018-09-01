@@ -59,7 +59,6 @@ namespace TestService2
 
     public class TestService : Service
     {
-
         /// <summary>
         /// Makes outbound call to Service2
         /// </summary>

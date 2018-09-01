@@ -11,6 +11,7 @@ using ServiceStack.Web;
 using ServiceStack.Redis.Pipeline;
 using System.Net;
 using System.Collections.Concurrent;
+using ServiceStack.Host;
 
 namespace ServiceStack.Discovery.Redis
 {
@@ -247,12 +248,16 @@ namespace ServiceStack.Discovery.Redis
             BackgroundLoopTimer.Dispose();
             UnregisterToRSD();
         }
-
+        RedisServiceDiscoveryServices serviceInstance = null;
         public string ResolveBaseUrl(Type dtoType)
         {
             if (dtoType == null)
                 throw new ArgumentNullException(nameof(dtoType));
-            return HostContext.AppHost.ExecuteService(new ResolveBaseUrl { TypeFullName = dtoType.FullName }) as string;
+            if (serviceInstance == null)
+            {
+                serviceInstance = HostContext.ResolveService<RedisServiceDiscoveryServices>(new BasicRequest());
+            }
+            return serviceInstance.Any(new ResolveBaseUrl { TypeFullName = dtoType.FullName });
         }
 
         private void TimerTick(object state)
@@ -394,9 +399,9 @@ namespace ServiceStack.Discovery.Redis
         private const string GetActiveNodeFormatString = "{0}:node:*";
         private const string GetActiveHostsFormatString = "{0}:host:*";
         private static readonly string RedisPrefix = HostContext.GetPlugin<RedisServiceDiscoveryFeature>().RedisPrefix;
-        private IRedisClientsManager RedisClientsManager = HostContext.GetPlugin<RedisServiceDiscoveryFeature>().RedisClientsManager;
+        private static readonly IRedisClientsManager RedisClientsManager = HostContext.GetPlugin<RedisServiceDiscoveryFeature>().RedisClientsManager;
 
-        public Dictionary<string, string> Any(ResolveNodesForRequest req)
+        public IDictionary<string, string> Any(ResolveNodesForRequest req)
         {
             if (req.TypeFullName.IsEmpty())
                 return null;
@@ -406,7 +411,7 @@ namespace ServiceStack.Discovery.Redis
                 var keys = redis.GetKeysByPattern(typeKey);
                 if (keys.Any())
                 {
-                    return redis.GetAll<string>(keys) as Dictionary<string, string>;
+                    return redis.GetAll<string>(keys);
                 }
             }
             return null;
@@ -435,8 +440,8 @@ namespace ServiceStack.Discovery.Redis
 
     public class RedisServiceDiscoveryGateway : ServiceGatewayFactoryBase
     {
-        private static bool UseSharedServiceClients = HostContext.GetPlugin<RedisServiceDiscoveryFeature>().UseSharedServiceClients;
-        private static ConcurrentDictionary<string, JsonHttpClient> SharedClients = new ConcurrentDictionary<string, JsonHttpClient>();
+        private static readonly bool UseSharedServiceClients = HostContext.GetPlugin<RedisServiceDiscoveryFeature>().UseSharedServiceClients;
+        private static readonly ConcurrentDictionary<string, JsonHttpClient> SharedClients = new ConcurrentDictionary<string, JsonHttpClient>();
         public override IServiceGateway GetGateway(Type requestType)
         {
             var feature = HostContext.GetPlugin<RedisServiceDiscoveryFeature>();
