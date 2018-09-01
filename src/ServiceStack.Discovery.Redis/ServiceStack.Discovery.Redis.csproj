@@ -8,6 +8,16 @@
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>ServiceStack plugin that supports service discovery and request uri resolution using Redis</Description>
+    <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/rsafier/ServiceStack.Discovery.Redis</PackageProjectUrl>
+    <PackageIconUrl>https://servicestack.net/img/logo-32.png</PackageIconUrl>
+    <Version>2.0.0</Version>
+    <Authors>Richard J. Safier (@rsafier)</Authors>
+    <PackageTags>servicestack plugin discovery servicediscovery microservices redis netstandard20</PackageTags>
+    <PackageReleaseNotes>See github for details.</PackageReleaseNotes>
   </PropertyGroup>
     <!-- common NuGet package refs that affect all projects -->
     <ItemGroup>
