@@ -315,7 +315,6 @@ namespace ServiceStack.Discovery.Redis
 
         private void RegisterTypes(IRedisPipeline p)
         {
-
             if (FirstNodeRegistration)
             {
                 foreach (var typeName in TypeNames)
@@ -324,6 +323,8 @@ namespace ServiceStack.Discovery.Redis
                     p.QueueCommand(q => q.Set(key, HostContext.AppHost.Config.WebHostUrl));
                     p.QueueCommand(q => q.AddItemToSet(RedisNodeRefreshKeySet, key));
                 }
+                p.QueueCommand(q => q.AddItemToSet(RedisNodeRefreshKeySet, RedisNodeRefreshKeySet));
+                p.QueueCommand(q => q.ExpireEntryIn(RedisNodeRefreshKeySet, NodeTimeoutPeriod)); 
                 FirstNodeRegistration = false;
             }
             else
