@@ -399,8 +399,8 @@ namespace ServiceStack.Discovery.Redis
         private const string GetActiveNodeFormatString = "{0}:node:*";
         private const string GetActiveHostsFormatString = "{0}:host:*";
         private static readonly string RedisPrefix = HostContext.GetPlugin<RedisServiceDiscoveryFeature>().RedisPrefix;
+        private static readonly TimeSpan LocalCachingPeriod = new TimeSpan(HostContext.GetPlugin<RedisServiceDiscoveryFeature>().NodeTimeoutPeriod.Ticks / 2); //use 1/2 node timeout as caching period
         private static readonly IRedisClientsManager RedisClientsManager = HostContext.GetPlugin<RedisServiceDiscoveryFeature>().RedisClientsManager;
-
         public IDictionary<string, string> Any(ResolveNodesForRequest req)
         {
             if (req.TypeFullName.IsEmpty())
@@ -419,7 +419,7 @@ namespace ServiceStack.Discovery.Redis
 
         public string Any(ResolveBaseUrl req)
         {
-            return Any(req.ConvertTo<ResolveNodesForRequest>())?.First().Value;
+            return LocalCache.GetOrCreate($"rds:rbs:{req.ToGetUrl()}", LocalCachingPeriod, () =>{ return Any(req.ConvertTo<ResolveNodesForRequest>())?.First().Value; });
         }
         public List<RedisDiscoveryNodeInfo> Any(GetActiveNodes req)
         {
@@ -441,7 +441,7 @@ namespace ServiceStack.Discovery.Redis
     public class RedisServiceDiscoveryGateway : ServiceGatewayFactoryBase
     {
         private static readonly bool UseSharedServiceClients = HostContext.GetPlugin<RedisServiceDiscoveryFeature>().UseSharedServiceClients;
-        private static readonly ConcurrentDictionary<string, JsonHttpClient> SharedClients = new ConcurrentDictionary<string, JsonHttpClient>();
+        private static readonly ConcurrentDictionary<string, IServiceClient> SharedClients = new ConcurrentDictionary<string, IServiceClient>();
         public override IServiceGateway GetGateway(Type requestType)
         {
             var feature = HostContext.GetPlugin<RedisServiceDiscoveryFeature>();
@@ -462,14 +462,14 @@ namespace ServiceStack.Discovery.Redis
             {
                 baseUrl = baseUrl.Insert(4, "s"); //tack in the secure if required and not in base listening url
             }
-            return UseSharedServiceClients ? ResolveServiceClient(baseUrl) : new JsonHttpClient(baseUrl);
+            return UseSharedServiceClients ? ResolveServiceClient(baseUrl) : new JsonHttpClient(baseUrl).WithCache();
         }
 
-        private static JsonHttpClient ResolveServiceClient(string baseUrl)
+        private static IServiceClient ResolveServiceClient(string baseUrl)
         {
             if (!SharedClients.ContainsKey(baseUrl))
             {
-                SharedClients[baseUrl] = new JsonHttpClient(baseUrl);
+                SharedClients[baseUrl] = new JsonHttpClient(baseUrl).WithCache();
             }
             return SharedClients[baseUrl];
         }
