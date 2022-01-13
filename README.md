@@ -2,6 +2,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/github/rsafier/ServiceStack.Discovery.Redis?branch=master&svg=true)](https://ci.appveyor.com/project/rsafier/servicestack-discovery-redis)
 [![NuGet version](https://badge.fury.io/nu/ServiceStack.Discovery.Redis.svg)](https://badge.fury.io/nu/ServiceStack.Discovery.Redis)
 
+### NOTE: This repo is no longer maintained 
 A plugin for [ServiceStack](https://servicestack.net/) that provides transparent service discovery using via a simple [Redis](http://redis.io)-backed datastore.
 
 This enables your servicestack instances to call one another, without either knowing where the other is, based solely on a copy of the `RequestDTO` type. Your services will not need to take any dependencies on each other and as you deploy updates to your services they will automatically be registered and used without reconfiguing the existing services.
